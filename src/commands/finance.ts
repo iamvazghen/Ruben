@@ -12,12 +12,13 @@ import { PortfolioStore } from '../tools/portfolio/store.js';
 import { setSetting } from '../utils/config.js';
 import { baseCurrency, money, timeZone } from '../utils/locale.js';
 import { yahoo, type MarketData } from '../market/yahoo.js';
+import { runReportCommand, runSpendingCommand } from '../personal/commands.js';
 
 /**
  * Money commands answered by code, not the model, identically in the CLI and
  * on Telegram. Returns the reply, or null when `name` is not one of them.
  */
-export const FINANCE_COMMANDS = [...INCOME_COMMANDS, 'import', 'targets', 'rebalance', 'setup', 'judgements'] as const;
+export const FINANCE_COMMANDS = [...INCOME_COMMANDS, 'import', 'targets', 'rebalance', 'setup', 'judgements', 'spending', 'results'] as const;
 
 /**
  * Which account an export belongs to: a broker named in the hint or file name,
@@ -47,6 +48,11 @@ export async function runFinanceCommand(name: string, args: string, market: Mark
   if (name === 'targets' || name === 'rebalance') return runRebalanceCommand(name, args, market);
   if (name === 'setup') return setup(args, market);
   if (name === 'judgements') return describeScores(await scoreJudgements(market));
+  if (name === 'spending') return runSpendingCommand(args);
+  if (name === 'results') {
+    const { text, files } = await runReportCommand(args);
+    return files.length ? `${text}\n\nFiles:\n${files.join('\n')}` : text;
+  }
   if (name === 'import') {
     const [first = '', ...rest] = args.trim().split(/\s+/);
     if (first === 'confirm') return confirmImport();

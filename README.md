@@ -217,6 +217,7 @@ Multi-step workflows invoked via the `skill` tool. Each is a `SKILL.md` with YAM
 | `write-memo` | "write a memo", "long writeup" — buyside-style HTML memo |
 | `x-research` | X/Twitter sentiment research |
 | `wealth-review` | "review my portfolio", "what do I do with my dividends", year-end tax planning — the whole position, ending in recommendations |
+| `personal-finance` | "I bought…", "add my payslip", "new subscription", "where can I save", "send me the monthly report" |
 | `property-research` | "what rent can I charge", "what is my flat worth", "should I refinance" — local market data recorded with date and source |
 
 ---
@@ -280,6 +281,10 @@ settings, and every amount is converted to the base currency.
 | **Monitoring** | `portfolio_alerts`, daily `portfolio:watch` job, `news_materiality`, `thesis_check` | Every weekday evening: sharp falls, drawdowns, losses vs cost, stop/target hits, dividend cuts, then the news behind them. You hear only about what is bad, with a recommendation; silence otherwise |
 | **Analysis and forecast** | `grade_ticker`, `asset_forecast`, DCF/comps/DDM skills, `run_debate` | Deterministic 0-100 grades on two horizons; a statistical 1/3/5-year price range (P10/P50/P90) for any asset, with the uncertainty of its own drift |
 | **Tax** | `tax_profile`, `tax_year_summary` | Withholding and residence tax per payment; for a tax year: income, foreign tax, sales (shares separate), rental results, mapped to the German forms (Anlage KAP, KAP-INV, V); year-end planning (unused allowance, loss offsets). Prepares figures, does not file |
+| **Salary** | `salary` | Employers and payslips: yearly gross, income tax, social contributions, net, deduction rate, raises, bonuses, missing payslips, gross against the contract |
+| **Spending** | `spending`, `/spending <csv>` or a statement sent to the bot | Every purchase with date, amount, merchant, what was bought, category, payment method and receipt; bank/card CSV import (German and English exports) with learned categories and duplicate detection; monthly budgets per category |
+| **Subscriptions** | `subscriptions`, daily renewal check | Price and price history, cycle, next renewal, trial end, notice period and cancel-by date, minimum term, account email, cancel link, usage; renewals, trials and deadlines flagged before they cost money |
+| **Results and reports** | `finance_report`, `/results <period> [xlsx\|csv\|both]`, scheduled monthly/quarterly/annual | An Excel workbook (Summary, Spending, Merchants, Transactions, Subscriptions, Salary, Optimisation) or CSV: income, expenses, net cash flow and savings rate against the previous period and the same period last year, and where costs can be cut. Sent to Telegram as a file |
 | **Real estate** | `property_manage`, `property_review`, `mortgage_rates`, `housing_market`, `rentcast_*` | Apartments and houses with their mortgages: equity, LTV, gross/net yield, cash flow after debt service, rent per m² vs the local market, refinancing cost when a fixation ends at today's rate. ECB mortgage rates by country and fixation period; Eurostat house-price and rent trends |
 
 Data limits, stated rather than hidden: ECB mortgage rates cover the euro area

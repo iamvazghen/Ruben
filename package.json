@@ -4,11 +4,27 @@
   "description": "RUBEN - self-hosted financial research agent with deterministic 0-100 investment grading on two horizons.",
   "license": "MIT",
   "author": "iamvazghen",
-  "repository": { "type": "git", "url": "git+https://github.com/iamvazghen/Ruben.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamvazghen/Ruben.git"
+  },
   "homepage": "https://github.com/iamvazghen/Ruben#readme",
-  "bugs": { "url": "https://github.com/iamvazghen/Ruben/issues" },
-  "keywords": ["finance", "investing", "ai-agent", "llm", "stocks", "etf", "valuation", "telegram-bot"],
-  "engines": { "node": ">=20" },
+  "bugs": {
+    "url": "https://github.com/iamvazghen/Ruben/issues"
+  },
+  "keywords": [
+    "finance",
+    "investing",
+    "ai-agent",
+    "llm",
+    "stocks",
+    "etf",
+    "valuation",
+    "telegram-bot"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "type": "module",
   "main": "src/index.tsx",
   "bin": {
@@ -42,6 +58,7 @@
     "diff": "^8.0.4",
     "dotenv": "^17.3.1",
     "exa-js": "^2.10.1",
+    "exceljs": "^4.4.0",
     "gray-matter": "^4.0.3",
     "langsmith": "^0.4.12",
     "lru-cache": "^11.5.1",

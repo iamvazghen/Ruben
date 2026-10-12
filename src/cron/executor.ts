@@ -80,7 +80,7 @@ function errorBackoffMs(consecutiveErrors: number): number {
  * Find the most recently updated session with a delivery target.
  * Same pattern as heartbeat runner.
  */
-function findTargetSession(): SessionEntry | null {
+export function findTargetSession(): SessionEntry | null {
   const storePath = resolveSessionStorePath('default');
   const store = loadSessionStore(storePath);
   const entries = Object.values(store).filter((e) => e.lastTo);
@@ -232,7 +232,7 @@ export async function executeCronJob(
  * Outbound guard for scheduled jobs. An empty allowlist means the channel was
  * never restricted; a populated one must contain this recipient.
  */
-function assertCronOutboundAllowed(session: SessionEntry): void {
+export function assertCronOutboundAllowed(session: SessionEntry): void {
   const to = session.lastTo;
   if (!to) throw new Error('no recipient on session');
 

@@ -51,6 +51,7 @@ import { propertyManage, propertyReview, mortgageRatesTool, housingMarketTool } 
 import { commitmentsTool, incomeForecastTool, wealthOverviewTool } from '../wealth/tools.js';
 import { assetForecastTool, fundLookThroughTool, portfolioAlertsTool } from '../wealth/analysis-tools.js';
 import { taxYearSummaryTool } from '../tax/annual.js';
+import { salaryTool, spendingTool, subscriptionsTool, financeReportTool } from '../personal/tools.js';
 import { jevAvailable } from '../judge/jev.js';
 import {
   gradeTickerTool,
@@ -455,6 +456,11 @@ export function getToolRegistry(model: string): RegisteredTool[] {
     { name: 'property_manage', tool: propertyManage, description: 'Add, update or remove an owned property and its mortgages after the owner confirms.', compactDescription: 'Record a property and its mortgages.', concurrencySafe: false },
     { name: 'property_review', tool: propertyReview, description: 'Equity, LTV, yields, cash flow, rent/m2 vs market, refinancing risk per property.', compactDescription: 'Review owned real estate.', concurrencySafe: true },
     { name: 'mortgage_rates', tool: mortgageRatesTool, description: 'Euro-area mortgage rates by country and fixation period (ECB), with a year-ago comparison.', compactDescription: 'Mortgage rates by country.', concurrencySafe: true },
+    // Personal finance: salary, purchases, subscriptions, period reports.
+    { name: 'salary', tool: salaryTool, description: 'Employers and payslips; yearly gross, tax, social, net, deduction rate, raises, missing payslips.', compactDescription: 'Salary and payslips.', concurrencySafe: false },
+    { name: 'spending', tool: spendingTool, description: 'Purchases (date, amount, merchant, items, category, payment method), category corrections, monthly budgets.', compactDescription: 'Purchases and budgets.', concurrencySafe: false },
+    { name: 'subscriptions', tool: subscriptionsTool, description: 'Every subscription: cost, renewals, trials, notice and cancel-by dates, price rises, usage, overlaps.', compactDescription: 'Subscriptions and renewals.', concurrencySafe: false },
+    { name: 'finance_report', tool: financeReportTool, description: 'Monthly/quarterly/annual results vs previous period and last year as Excel/CSV, optionally sent to Telegram.', compactDescription: 'Period results as Excel/CSV.', concurrencySafe: false },
     { name: 'housing_market', tool: housingMarketTool, description: 'House-price and rent trends for an EU/EEA country (Eurostat).', compactDescription: 'National house price and rent trends.', concurrencySafe: true },
   );
 

@@ -16,13 +16,15 @@ import { refreshIncome } from '../income/refresh.js';
 import { allocate, planFor, type YieldAction } from '../income/plan.js';
 import { reviewProperty } from '../realestate/analysis.js';
 import { realEstateStore } from '../realestate/tools.js';
+import { salaryStore, spendingStore, subscriptionStore } from '../personal/store.js';
+import { chargesBetween } from '../personal/periods.js';
 
 export type Frequency = 'monthly' | 'quarterly' | 'semiannual' | 'yearly' | 'once';
 
 export interface Commitment {
   id: string;
   name: string;
-  kind: 'savings_plan' | 'loan' | 'capital_call' | 'insurance' | 'subscription' | 'other';
+  kind: 'savings_plan' | 'loan' | 'capital_call' | 'insurance' | 'other';
   amount: number;
   currency: string;
   frequency: Frequency;
@@ -61,13 +63,13 @@ async function toBase(market: MarketData, currency: string): Promise<number | nu
 export const commitmentsTool = new DynamicStructuredTool({
   name: 'commitments',
   description:
-    "The owner's recurring and one-off financial commitments: savings plans, loan payments other than mortgages (those come from the properties), capital calls, insurance, subscriptions. `show` totals the next 12 months in the base currency. add/remove are durable: confirm with the owner first.",
+    "The owner's recurring and one-off financial commitments: savings plans, loan payments other than mortgages (those come from the properties), capital calls, insurance (subscriptions have their own tool). `show` totals the next 12 months in the base currency. add/remove are durable: confirm with the owner first.",
   schema: z.object({
     action: z.enum(['show', 'add', 'remove']),
     id: z.string().optional().describe('For remove'),
     commitment: z.object({
       name: z.string(),
-      kind: z.enum(['savings_plan', 'loan', 'capital_call', 'insurance', 'subscription', 'other']),
+      kind: z.enum(['savings_plan', 'loan', 'capital_call', 'insurance', 'other']),
       amount: z.number().positive(),
       currency: z.string(),
       frequency: z.enum(['monthly', 'quarterly', 'semiannual', 'yearly', 'once']),
@@ -172,7 +174,7 @@ export const incomeForecastTool = new DynamicStructuredTool({
 export const wealthOverviewTool = new DynamicStructuredTool({
   name: 'wealth_overview',
   description:
-    "The owner's whole position in the base currency: securities by asset type and largest holdings, cash reserve, real estate value, debt and equity, net worth and how it is split across asset classes, income expected over 12 months (investment income net of tax, rent net of costs), and the cash the commitments and mortgages take. Flags concentration and gaps. Use it before any allocation advice.",
+    "The owner's whole position in the base currency: securities by asset type and largest holdings, cash reserve, real estate value, debt and equity, net worth and how it is split across asset classes, income expected over 12 months (investment income net of tax, rent net of costs), and the cash the commitments and mortgages take. Flags concentration and gaps. Salary is annualised from the last three payslips; living costs are the last 12 months of purchases plus subscriptions. Use it before any allocation advice.",
   schema: z.object({}),
   func: async () => {
     const market = yahoo;
@@ -208,10 +210,23 @@ export const wealthOverviewTool = new DynamicStructuredTool({
     const { events } = await incomeNextYear();
     const investmentIncome = events.reduce((s, e) => s + e.tax.net, 0);
 
+    // Salary: the last three payslips, annualised. Living costs: the last 12 months of purchases plus the subscriptions due in the next 12.
+    const slips = [...salaryStore.read().payslips].sort((a, b) => b.pay_date.localeCompare(a.pay_date)).slice(0, 3);
+    let salary = 0;
+    for (const p of slips) salary += ((p.net * ((await toBase(market, p.currency)) ?? 0)) / slips.length) * 12;
+    const yearAgo = new Date(Date.now() - 365 * DAY).toISOString().slice(0, 10);
+    let living = 0;
+    for (const x of spendingStore.read().purchases.filter((x) => x.date >= yearAgo && !x.subscription_id)) living += x.amount * ((await toBase(market, x.currency)) ?? 0);
+    const inAYear = new Date(Date.now() + 365 * DAY).toISOString().slice(0, 10);
+    let subs = 0;
+    for (const sub of subscriptionStore.read().subscriptions) subs += chargesBetween(sub, today(), inAYear).reduce((a, c) => a + c.amount, 0) * ((await toBase(market, sub.currency)) ?? 0);
+    const monthlyOutgoings = (living + subs + reService + commitments) / 12;
+    if (monthlyOutgoings > 0 && reserve < monthlyOutgoings * 3) flags.push(`cash reserve covers ${r2(reserve / monthlyOutgoings)} months of outgoings; 3 to 6 is the usual floor`);
+    if (!slips.length) flags.push('no payslips recorded: salary is not in the cash-flow picture');
+
     const netWorth = securities + reserve + reEquity;
     const classes: Record<string, number> = { ...byType, cash_reserve: reserve, real_estate_equity: reEquity };
     if (netWorth > 0 && reEquity / netWorth > 0.6) flags.push(`real estate is ${r2((reEquity / netWorth) * 100)}% of net worth: illiquid and concentrated`);
-    if (netWorth > 0 && reserve / netWorth < 0.03 && reService > 0) flags.push('cash reserve is under 3% of net worth while mortgages are running');
 
     return formatToolResult({
       base_currency: baseCurrency(), as_of: today(),
@@ -225,7 +240,10 @@ export const wealthOverviewTool = new DynamicStructuredTool({
         rental_noi: r2(reNoi),
         mortgage_payments: r2(reService),
         other_commitments: r2(commitments),
-        surplus_before_salary_and_living_costs: r2(investmentIncome + reNoi - reService - commitments),
+        salary_net_annualised: r2(salary),
+        living_costs_last_12_months: r2(living),
+        subscriptions: r2(subs),
+        surplus: r2(salary + investmentIncome + reNoi - reService - commitments - living - subs),
       },
       flags,
     });

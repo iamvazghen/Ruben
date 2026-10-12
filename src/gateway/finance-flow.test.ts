@@ -77,6 +77,15 @@ describe('Telegram: import, configure, get reminded', () => {
   test('other files and server paths are refused', async () => {
     expect(await say('', { fileName: 'statement.pdf', size: 1, readText: async () => '' })).toContain('.csv');
     expect(await say('/import /etc/passwd')).toContain('Send the CSV export to this chat as a file');
+    expect(await say('/spending /etc/passwd')).toContain('Send the CSV export to this chat as a file');
+  });
+
+  test('a bank statement sent as a file becomes a spending preview, not a broker import', async () => {
+    const csv = 'Buchungstag;Zahlungsempfänger;Verwendungszweck;Betrag\n01.09.2026;REWE Markt;Einkauf;-54,20\n';
+    const reply = await say('', { fileName: 'konto.csv', size: csv.length, readText: async () => csv });
+    expect(reply).toContain('1 purchases');
+    expect(reply).toContain('/spending confirm');
+    expect(await say('/spending cancel')).toContain('cancelled');
   });
 
   test('/setup and /tax are answered by code, with the bot-name suffix Telegram adds', async () => {

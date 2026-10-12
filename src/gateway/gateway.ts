@@ -5,10 +5,13 @@ import { resolveRoute } from './routing/resolve-route.js';
 import { resolveSessionStorePath, upsertSessionMeta } from './sessions/store.js';
 import { handleSessionCommand, openConversation } from './sessions/conversation.js';
 import { FINANCE_COMMANDS, importFromText, runFinanceCommand } from '../commands/finance.js';
+import { looksLikeBankStatement, runReportCommand, spendingFromText } from '../personal/commands.js';
+import { sendFilesToOwner } from '../personal/deliver.js';
 import { ensureIncomeRefreshJob } from '../income/refresh.js';
 import { ensureRebalanceCheckJob } from '../rebalance/check.js';
 import { ensureThesisCheckJob } from '../judge/jobs.js';
 import { ensurePortfolioWatchJob } from '../wealth/watch.js';
+import { ensurePersonalFinanceJobs } from '../personal/jobs.js';
 import { loadGatewayConfig, type GatewayConfig } from './config.js';
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from '../model/llm.js';
 import { runAgentForMessage, isSessionRunning, enqueueForSession } from './agent-runner.js';
@@ -88,9 +91,11 @@ export async function handleTelegramInbound(
   if (inbound.document) {
     const reply = /\.(csv|txt)$/i.test(inbound.document.fileName)
       ? await inbound.document.readText()
-          .then((text) => importFromText(text, inbound.document!.fileName, inbound.body))
+          .then((text) => looksLikeBankStatement(text, inbound.body)
+            ? spendingFromText(text, inbound.document!.fileName, inbound.body)
+            : importFromText(text, inbound.document!.fileName, inbound.body))
           .catch((err: unknown) => `Could not read the file: ${err instanceof Error ? err.message : String(err)}`)
-      : 'Send a broker export as a .csv file.';
+      : 'Send a broker export or a bank statement as a .csv file.';
     await inbound.reply(reply);
     return;
   }
@@ -101,7 +106,17 @@ export async function handleTelegramInbound(
     const name = finance[1]!.toLowerCase();
     const args = (finance[2] ?? '').trim();
     // A file path here would point at the server's disk, not the owner's.
-    const reply = name === 'import' && !/^(confirm|cancel)$/.test(args)
+    if (name === 'results') {
+      // The workbook goes to this chat as a document, not as a path on the server's disk.
+      const { text, files } = await runReportCommand(args);
+      await inbound.reply(text);
+      if (files.length) {
+        const sent = await sendFilesToOwner(files, `R.U.B.E.N. report ${args || 'last_month'}`).catch((e: unknown) => ({ sent: [], error: String(e) }));
+        if (sent.error) await inbound.reply(`Could not send the file: ${sent.error}`);
+      }
+      return;
+    }
+    const reply = (name === 'import' || name === 'spending') && args && !/^(confirm|cancel)$/.test(args)
       ? 'Send the CSV export to this chat as a file; you will get a preview to confirm.'
       : await runFinanceCommand(name, args);
     await inbound.reply(reply ?? '');
@@ -223,6 +238,7 @@ export async function startGateway(params: { configPath?: string } = {}): Promis
   ensureRebalanceCheckJob();
   ensureThesisCheckJob();
   ensurePortfolioWatchJob();
+  ensurePersonalFinanceJobs();
   const cron = startCronRunner({ configPath: params.configPath });
 
   return {

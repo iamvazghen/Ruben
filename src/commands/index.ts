@@ -51,6 +51,8 @@ export const SLASH_COMMANDS: SlashCommand[] = [
   { name: 'tax', description: 'Tax residence, per-account W-8BEN and withholding, allowance left', category: 'Portfolio', usage: '/tax set residence DE' },
   { name: 'targets', description: 'Rebalancing targets by holding, asset type, region or sector; band, fees', category: 'Portfolio', usage: '/targets set stock 50 etf 40 cash 10 · /targets mode region · /targets fee 1 0.1' },
   { name: 'rebalance', description: 'How far holdings drifted and the trades that fix it', category: 'Portfolio', usage: '/rebalance [cash 1000]' },
+  { name: 'spending', description: 'This month so far, or import a bank statement CSV', category: 'Portfolio', usage: '/spending [file.csv | confirm | cancel]' },
+  { name: 'results', description: 'Monthly/quarterly/annual results as Excel or CSV', category: 'Portfolio', usage: '/results [2026-09 | 2026-Q3 | 2026 | last_month] [xlsx | csv | both]' },
 
   // --- Session
   { name: 'new', description: 'Start a new session; the current one stays saved and resumable', category: 'Session' },

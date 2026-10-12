@@ -129,6 +129,31 @@ ${body}` : body);
   }
 }
 
+/** Send a file (report, export) as a Telegram document, multipart because the Bot API needs the bytes. */
+export async function sendDocumentTelegram(params: {
+  botToken: string;
+  chatId: string | number;
+  fileName: string;
+  data: Uint8Array;
+  caption?: string;
+  signal?: AbortSignal;
+}): Promise<void> {
+  const form = new FormData();
+  form.append('chat_id', String(params.chatId));
+  if (params.caption) form.append('caption', params.caption.slice(0, 1024));
+  form.append('document', new Blob([new Uint8Array(params.data)]), params.fileName);
+  let response: Response;
+  try {
+    response = await fetch(`${API_ROOT}/bot${params.botToken}/sendDocument`, { method: 'POST', body: form, signal: params.signal ?? AbortSignal.timeout(60_000) });
+  } catch (error) {
+    throw new TelegramApiError(`[Telegram API] network error on sendDocument: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  const data = (await response.json().catch(() => ({}))) as { ok?: boolean; description?: string; error_code?: number };
+  if (!response.ok || !data.ok) {
+    throw new TelegramApiError(`[Telegram API] sendDocument failed: ${data.description ?? response.status}`, data.error_code);
+  }
+}
+
 export async function sendTypingTelegram(params: {
   botToken: string;
   chatId: string | number;
