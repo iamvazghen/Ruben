@@ -188,7 +188,7 @@ export const wealthOverviewTool = new DynamicStructuredTool({
       .map((h) => ({ ticker: h.position.ticker, value: r2(h.value), weight_pct: securities ? r2((h.value / securities) * 100) : 0 }));
     for (const h of largest) {
       const type = holdings.find((x) => x.position.ticker === h.ticker)?.position.asset_type;
-      if (type !== 'etf' && type !== 'cash' && h.weight_pct > 10) flags.push(`${h.ticker} is ${h.weight_pct}% of securities: single-name concentration`);
+      if (type !== 'etf' && type !== 'fund' && type !== 'cash' && h.weight_pct > 10) flags.push(`${h.ticker} is ${h.weight_pct}% of securities: concentrated in one ${type === 'crypto' ? 'coin' : type === 'commodity' ? 'commodity' : 'name'}`);
     }
     const reserve = incomeStore.ledger().reserve;
 

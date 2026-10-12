@@ -75,17 +75,19 @@ const MAX_DOCUMENT_BYTES = 2_000_000;
 
 /** Lazily downloadable attachment: nothing is fetched unless the handler asks. */
 function telegramDocument(botToken: string, doc: NonNullable<TelegramMessage['document']>) {
+  async function download(): Promise<Uint8Array> {
+    if ((doc.file_size ?? 0) > MAX_DOCUMENT_BYTES) throw new Error('file is larger than 2 MB');
+    const file = await callTelegram<{ file_path?: string }>(botToken, 'getFile', { file_id: doc.file_id });
+    if (!file.file_path) throw new Error('Telegram returned no file path');
+    const res = await fetch(`https://api.telegram.org/file/bot${botToken}/${file.file_path}`, { signal: AbortSignal.timeout(30_000) });
+    if (!res.ok) throw new Error(`download failed (${res.status})`);
+    return new Uint8Array(await res.arrayBuffer());
+  }
   return {
     fileName: doc.file_name ?? 'file',
     size: doc.file_size ?? 0,
-    readText: async (): Promise<string> => {
-      if ((doc.file_size ?? 0) > MAX_DOCUMENT_BYTES) throw new Error('file is larger than 2 MB');
-      const file = await callTelegram<{ file_path?: string }>(botToken, 'getFile', { file_id: doc.file_id });
-      if (!file.file_path) throw new Error('Telegram returned no file path');
-      const res = await fetch(`https://api.telegram.org/file/bot${botToken}/${file.file_path}`, { signal: AbortSignal.timeout(30_000) });
-      if (!res.ok) throw new Error(`download failed (${res.status})`);
-      return await res.text();
-    },
+    readText: async (): Promise<string> => new TextDecoder().decode(await download()),
+    readBytes: () => download(),
   };
 }
 

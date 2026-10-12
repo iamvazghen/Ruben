@@ -1,6 +1,7 @@
 export {
   portfolioView,
   portfolioAdd,
+  portfolioUpdate,
   portfolioRemove,
   portfolioJournal,
   portfolioSetRisk,

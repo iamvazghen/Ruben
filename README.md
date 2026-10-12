@@ -274,6 +274,8 @@ settings, and every amount is converted to the base currency.
 
 | Need | Tools | What you get |
 |---|---|---|
+| **Every asset, every country** | `accounts`, `portfolio_add/update/remove`, `cash_transfer` | Stocks, ETFs, funds, bonds, crypto, commodities (quoted or physical with a manual price), cash in any currency and private assets — each tied to an account at an institution in a country, so value and tax are known per jurisdiction. The same asset can sit at two brokers; partial sales keep the rest; transfers move cash between accounts across borders and currencies, with large cross-border ones flagged |
+| **Tax in every jurisdiction** | `tax_jurisdiction`, `tax_knowledge`, `tax-optimisation` skill | Residence is a setting (`/jurisdiction set DE`). For the residence and every country holding an asset, RUBEN lists the tax topics that matter for what is held there (treaties included), researches them from official sources, keeps each rule with its source and date, and turns them into legal savings ranked by money |
 | **Whole picture** | `wealth_overview` | Net worth across securities, cash reserve and real estate equity; allocation by asset class; 12-month income against mortgage payments and `commitments`; concentration and liquidity flags |
 | **Portfolio management** | `portfolio_*`, `rebalance_targets`, `rebalance_proposal`, `fund_look_through` | Holdings by account and lot, drift from targets with tax-aware trades, ETF look-through (true underlying exposure, overlap, sector mix, annual fund cost) |
 | **Commitments** | `commitments` | Savings plans, loans, capital calls, insurance — what they take over the next 12 months |
@@ -292,6 +294,27 @@ and Eurostat the EU/EEA; city-level rent per m² comes from local rent indices
 and listing portals through search, recorded with its date and source. Sale
 results use today's exchange rate, so the broker's annual tax statement stays
 authoritative.
+
+---
+
+### Money commands
+
+Answered by code from your data, the same in the CLI and on Telegram (files arrive in Telegram as documents):
+
+| Command | What it shows or does |
+|---|---|
+| `/networth` | Net worth, allocation by asset class, 12-month income against outgoings, flags |
+| `/holdings [account\|crypto\|etf…]` | Every holding with value, weight and account |
+| `/accounts` | Accounts by institution and country; value per jurisdiction |
+| `/jurisdiction [set XX]` | Tax residence; every jurisdiction holding assets; what still needs tax research |
+| `/transfers [from]` | Money moved between accounts; large cross-border transfers flagged |
+| `/subs`, `/salary`, `/budget`, `/spending` | Subscriptions, payslips, budgets, this month's spending |
+| `/alerts`, `/forecast <symbol>`, `/property`, `/taxyear [year]` | Warnings, price ranges, real estate, tax-year figures |
+| `/results <period> [xlsx\|csv\|both]` | Monthly/quarterly/annual results workbook |
+| `/export [all\|<datasets>] [xlsx\|csv]` | Everything RUBEN stores — accounts, holdings, closed, properties, commitments, subscriptions, purchases, payslips, transfers, tax notes… — as one workbook or CSVs |
+| `/importsheet <file>` · `confirm [replace]` · `cancel` | Bring a RUBEN workbook or dataset CSV back in (or send it to the bot): preview, then merge or replace |
+
+Recording things (a purchase, a payslip, a holding, a property) is done by telling RUBEN in plain words; it confirms before saving.
 
 ---
 

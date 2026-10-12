@@ -80,6 +80,20 @@ describe('Telegram: import, configure, get reminded', () => {
     expect(await say('/spending /etc/passwd')).toContain('Send the CSV export to this chat as a file');
   });
 
+  test('a RUBEN workbook sent as a file is previewed for import, then applied on confirm', async () => {
+    const ExcelJS = (await import('exceljs')).default;
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('budgets');
+    ws.addRow(['category', 'monthly_limit', 'currency']);
+    ws.addRow(['dining', 250, 'EUR']);
+    const bytes = new Uint8Array(await wb.xlsx.writeBuffer());
+    const reply = await say('', { fileName: 'ruben-data.xlsx', size: bytes.length, readText: async () => '', readBytes: async () => bytes });
+    expect(reply).toContain('budgets');
+    expect(reply).toContain('1 new');
+    expect(await say('/importsheet confirm')).toContain('budgets: 1 added');
+    expect(await say('/budget')).toContain('dining');
+  });
+
   test('a bank statement sent as a file becomes a spending preview, not a broker import', async () => {
     const csv = 'Buchungstag;Zahlungsempfänger;Verwendungszweck;Betrag\n01.09.2026;REWE Markt;Einkauf;-54,20\n';
     const reply = await say('', { fileName: 'konto.csv', size: csv.length, readText: async () => csv });

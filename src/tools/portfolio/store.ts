@@ -67,9 +67,13 @@ export interface Position {
   /** For rebalancing by region or sector: from Yahoo's company profile, or set by the owner (/targets tag). Lower case. */
   region?: string;
   sector?: string;
+  /** What one unit is, when not a share: "oz", "g", "coin", "bar". */
+  unit?: string;
+  /** Price per unit for anything without a market quote (unlisted fund, private equity, art, a physical bar), dated. */
+  manual_price?: { amount: number; currency: string; as_of: string };
 }
 
-export type AssetType = 'stock' | 'etf' | 'bond' | 'cash';
+export type AssetType = 'stock' | 'etf' | 'fund' | 'bond' | 'cash' | 'crypto' | 'commodity' | 'other';
 
 export interface ClosedPosition extends Position {
   closed: string;
@@ -180,8 +184,9 @@ export class PortfolioStore {
   /** Add a position; throws if ticker already open (the user can close first). */
   addPosition(pos: Position): Portfolio {
     return this.update((p) => {
-      if (p.positions.some((x) => x.ticker.toUpperCase() === pos.ticker.toUpperCase())) {
-        throw new Error(`Position in ${pos.ticker} is already open. Close it first.`);
+      // One position per instrument per account: the same ETF can sit at two brokers in two countries.
+      if (p.positions.some((x) => x.ticker.toUpperCase() === pos.ticker.toUpperCase() && (x.account ?? '') === (pos.account ?? ''))) {
+        throw new Error(`Position in ${pos.ticker}${pos.account ? ` at ${pos.account}` : ''} is already open. Update or close it first.`);
       }
       return { ...p, positions: [...p.positions, pos] };
     });

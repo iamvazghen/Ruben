@@ -43,7 +43,7 @@ import { createRunDebate, RUN_DEBATE_DESCRIPTION } from './subagent/run-debate.j
 import { createAskUserQuestion, ASK_USER_QUESTION_DESCRIPTION } from './ask-user-question/ask-user-question.js';
 import { getAllProviderLeaves } from './finance/providers/index.js';
 import { getAllNewsLeaves, getNewsRouterTool } from './news/index.js';
-import { portfolioView, portfolioAdd, portfolioRemove, portfolioJournal, portfolioSetRisk } from './portfolio/index.js';
+import { portfolioView, portfolioAdd, portfolioUpdate, portfolioRemove, portfolioJournal, portfolioSetRisk } from './portfolio/index.js';
 import { incomeCalendar, yieldPlanTool, taxProfileTool, incomeConfirm,
   reserveTool, rebalanceProposal, rebalanceTargets, portfolioImport } from './portfolio/finance-tools.js';
 import { dividendSafety, thesisCheck, newsMateriality } from '../judge/tools.js';
@@ -51,6 +51,8 @@ import { propertyManage, propertyReview, mortgageRatesTool, housingMarketTool } 
 import { commitmentsTool, incomeForecastTool, wealthOverviewTool } from '../wealth/tools.js';
 import { assetForecastTool, fundLookThroughTool, portfolioAlertsTool } from '../wealth/analysis-tools.js';
 import { taxYearSummaryTool } from '../tax/annual.js';
+import { taxJurisdictionTool, taxKnowledgeTool } from '../tax/knowledge.js';
+import { accountsTool, transferTool } from '../wealth/accounts.js';
 import { salaryTool, spendingTool, subscriptionsTool, financeReportTool } from '../personal/tools.js';
 import { jevAvailable } from '../judge/jev.js';
 import {
@@ -430,6 +432,13 @@ export function getToolRegistry(model: string): RegisteredTool[] {
       concurrencySafe: false,
     },
     {
+      name: 'portfolio_update',
+      tool: portfolioUpdate,
+      description: 'Change an open position: quantity, cost, manual price, account, thesis, target or stop. Confirm first.',
+      compactDescription: 'Update an open position.',
+      concurrencySafe: false,
+    },
+    {
       name: 'portfolio_set_risk',
       tool: portfolioSetRisk,
       description: 'Set the user risk profile (total capital USD, max % per trade, max drawdown).',
@@ -456,6 +465,11 @@ export function getToolRegistry(model: string): RegisteredTool[] {
     { name: 'property_manage', tool: propertyManage, description: 'Add, update or remove an owned property and its mortgages after the owner confirms.', compactDescription: 'Record a property and its mortgages.', concurrencySafe: false },
     { name: 'property_review', tool: propertyReview, description: 'Equity, LTV, yields, cash flow, rent/m2 vs market, refinancing risk per property.', compactDescription: 'Review owned real estate.', concurrencySafe: true },
     { name: 'mortgage_rates', tool: mortgageRatesTool, description: 'Euro-area mortgage rates by country and fixation period (ECB), with a year-ago comparison.', compactDescription: 'Mortgage rates by country.', concurrencySafe: true },
+    // Where things are held, and the tax rules of each place.
+    { name: 'accounts', tool: accountsTool, description: 'Brokers, banks, exchanges, wallets by institution and country; value per jurisdiction. Confirm before changing.', compactDescription: 'Accounts and jurisdictions.', concurrencySafe: false },
+    { name: 'cash_transfer', tool: transferTool, description: 'Record money moving between accounts (also cross-border, cross-currency); list and flag large cross-border transfers.', compactDescription: 'Cash transfers between accounts.', concurrencySafe: false },
+    { name: 'tax_jurisdiction', tool: taxJurisdictionTool, description: 'Tax residence and every jurisdiction holding assets; which tax topics still need research. Set residence after confirming.', compactDescription: 'Tax residence and jurisdictions.', concurrencySafe: false },
+    { name: 'tax_knowledge', tool: taxKnowledgeTool, description: 'Researched tax rules per jurisdiction with sources and dates; save after every piece of tax research.', compactDescription: 'Researched tax rules.', concurrencySafe: false },
     // Personal finance: salary, purchases, subscriptions, period reports.
     { name: 'salary', tool: salaryTool, description: 'Employers and payslips; yearly gross, tax, social, net, deduction rate, raises, missing payslips.', compactDescription: 'Salary and payslips.', concurrencySafe: false },
     { name: 'spending', tool: spendingTool, description: 'Purchases (date, amount, merchant, items, category, payment method), category corrections, monthly budgets.', compactDescription: 'Purchases and budgets.', concurrencySafe: false },

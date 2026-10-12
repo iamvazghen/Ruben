@@ -4,8 +4,9 @@ import type { TelegramInboundMessage } from './channels/telegram/index.js';
 import { resolveRoute } from './routing/resolve-route.js';
 import { resolveSessionStorePath, upsertSessionMeta } from './sessions/store.js';
 import { handleSessionCommand, openConversation } from './sessions/conversation.js';
-import { FINANCE_COMMANDS, importFromText, runFinanceCommand } from '../commands/finance.js';
-import { looksLikeBankStatement, runReportCommand, spendingFromText } from '../personal/commands.js';
+import { FINANCE_COMMANDS, importFromText, runFileCommand, runFinanceCommand } from '../commands/finance.js';
+import { importSheetFromBytes, isRubenDatasetCsv } from '../commands/money.js';
+import { looksLikeBankStatement, spendingFromText } from '../personal/commands.js';
 import { sendFilesToOwner } from '../personal/deliver.js';
 import { ensureIncomeRefreshJob } from '../income/refresh.js';
 import { ensureRebalanceCheckJob } from '../rebalance/check.js';
@@ -89,13 +90,20 @@ export async function handleTelegramInbound(
 
   // A broker export sent as a file: preview the import (nothing saved until /import confirm).
   if (inbound.document) {
-    const reply = /\.(csv|txt)$/i.test(inbound.document.fileName)
-      ? await inbound.document.readText()
-          .then((text) => looksLikeBankStatement(text, inbound.body)
-            ? spendingFromText(text, inbound.document!.fileName, inbound.body)
-            : importFromText(text, inbound.document!.fileName, inbound.body))
-          .catch((err: unknown) => `Could not read the file: ${err instanceof Error ? err.message : String(err)}`)
-      : 'Send a broker export or a bank statement as a .csv file.';
+    const doc = inbound.document;
+    // A RUBEN workbook or dataset CSV restores data; a bank statement is spending; anything else a broker export.
+    const route = async (): Promise<string> => {
+      if (/\.xlsx$/i.test(doc.fileName)) {
+        if (!doc.readBytes) return 'This channel cannot read workbooks.';
+        return importSheetFromBytes(await doc.readBytes(), doc.fileName);
+      }
+      if (!/\.(csv|txt)$/i.test(doc.fileName)) return 'Send a RUBEN workbook (.xlsx), a broker export or a bank statement (.csv).';
+      const text = await doc.readText();
+      if (isRubenDatasetCsv(text, doc.fileName)) return importSheetFromBytes(new TextEncoder().encode(text), doc.fileName);
+      if (looksLikeBankStatement(text, inbound.body)) return spendingFromText(text, doc.fileName, inbound.body);
+      return importFromText(text, doc.fileName, inbound.body);
+    };
+    const reply = await route().catch((err: unknown) => `Could not read the file: ${err instanceof Error ? err.message : String(err)}`);
     await inbound.reply(reply);
     return;
   }
@@ -106,17 +114,17 @@ export async function handleTelegramInbound(
     const name = finance[1]!.toLowerCase();
     const args = (finance[2] ?? '').trim();
     // A file path here would point at the server's disk, not the owner's.
-    if (name === 'results') {
-      // The workbook goes to this chat as a document, not as a path on the server's disk.
-      const { text, files } = await runReportCommand(args);
-      await inbound.reply(text);
-      if (files.length) {
-        const sent = await sendFilesToOwner(files, `R.U.B.E.N. report ${args || 'last_month'}`).catch((e: unknown) => ({ sent: [], error: String(e) }));
+    const withFiles = await runFileCommand(name, args);
+    if (withFiles) {
+      // Files go to this chat as documents, not as paths on the server's disk.
+      await inbound.reply(name === 'export' ? withFiles.text.split('\n')[0]! : withFiles.text);
+      if (withFiles.files.length) {
+        const sent = await sendFilesToOwner(withFiles.files, `R.U.B.E.N. ${name} ${args}`.trim()).catch((e: unknown) => ({ sent: [], error: String(e) }));
         if (sent.error) await inbound.reply(`Could not send the file: ${sent.error}`);
       }
       return;
     }
-    const reply = (name === 'import' || name === 'spending') && args && !/^(confirm|cancel)$/.test(args)
+    const reply = (name === 'import' || name === 'spending' || name === 'importsheet') && args && !/^(confirm|cancel)/.test(args)
       ? 'Send the CSV export to this chat as a file; you will get a preview to confirm.'
       : await runFinanceCommand(name, args);
     await inbound.reply(reply ?? '');

@@ -7,12 +7,18 @@ import { addCycles, chargesBetween, lastYearPeriod, nextRenewal, parsePeriod, pr
 import type { Subscription } from './store.js';
 
 let home = '';
+const saved = { home: process.env.RUBEN_HOME, ccy: process.env.RUBEN_BASE_CURRENCY };
 beforeAll(() => {
   home = mkdtempSync(join(tmpdir(), 'ruben-personal-'));
   process.env.RUBEN_HOME = home;
   process.env.RUBEN_BASE_CURRENCY = 'EUR';
 });
-afterAll(() => rmSync(home, { recursive: true, force: true }));
+afterAll(() => {
+  // Other test files run in this process: leave the environment as found.
+  if (saved.home === undefined) delete process.env.RUBEN_HOME; else process.env.RUBEN_HOME = saved.home;
+  if (saved.ccy === undefined) process.env.RUBEN_BASE_CURRENCY = ''; else process.env.RUBEN_BASE_CURRENCY = saved.ccy;
+  rmSync(home, { recursive: true, force: true });
+});
 
 describe('periods', () => {
   const now = new Date('2026-10-12T12:00:00Z');

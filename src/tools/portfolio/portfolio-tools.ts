@@ -27,12 +27,16 @@ const PORTFOLIO_ADD_DESCRIPTION = `
 Add a new open position to the portfolio. The agent should confirm with the
 user before calling this — adding a position is a real, durable state change.
 
-Required: ticker, shares, avg_cost, currency, opened (YYYY-MM-DD), thesis,
-conviction.
-Optional: target_price, stop_loss, size_rationale.
+Any asset class in any country: stocks, ETFs, funds, bonds, crypto (data_symbol
+BTC-USD), commodities (GC=F for gold per oz, or a physical bar with unit and
+manual_price), cash at a bank (asset_type cash, ticker CASH-EUR, shares = the
+balance, avg_cost 1), and private assets (asset_type other with manual_price).
+Always set "account" so the holding is tied to its institution and country.
 
-If the user has not supplied a target_price or stop_loss, ask. Don't write
-zeros — those are not stops.
+Required: ticker, shares, avg_cost, currency, opened (YYYY-MM-DD), thesis,
+conviction. For cash and private assets a short purpose is enough as thesis.
+
+Don't invent a target_price or stop_loss; zeros are not stops.
 `.trim();
 
 const PORTFOLIO_REMOVE_DESCRIPTION = `
@@ -83,37 +87,87 @@ export const portfolioView = new DynamicStructuredTool({
   },
 });
 
+const ASSET_TYPES = ['stock', 'etf', 'fund', 'bond', 'cash', 'crypto', 'commodity', 'other'] as const;
+
+const positionFields = {
+  asset_type: z.enum(ASSET_TYPES).optional().describe('stock, etf, fund, bond, cash, crypto, commodity or other (private equity, art, unlisted)'),
+  account: z.string().optional().describe('Account id where it is held (see accounts); this sets its jurisdiction'),
+  data_symbol: z.string().optional().describe('Market-data symbol when it differs: VWCE.DE, BTC-USD, ETH-EUR, GC=F (gold, USD/oz), SI=F'),
+  isin: z.string().optional(),
+  name: z.string().optional(),
+  unit: z.string().optional().describe('What one unit is when not a share: oz, g, coin, bar'),
+  manual_price: z.object({ amount: z.number(), currency: z.string(), as_of: z.string() }).optional()
+    .describe('Price per unit for anything without a quote, dated'),
+  target_price: z.number().optional(),
+  stop_loss: z.number().optional(),
+  size_rationale: z.string().optional(),
+};
+
 export const portfolioAdd = new DynamicStructuredTool({
   name: 'portfolio_add',
   description: PORTFOLIO_ADD_DESCRIPTION,
   schema: z.object({
-    ticker: z.string().describe('Ticker symbol (e.g., "AAPL" or "VOD.LSE" for non-US).'),
-    shares: z.number().describe('Number of shares (negative for short).'),
-    avg_cost: z.number().describe('Average cost per share in local currency.'),
-    currency: z.string().default('USD').describe('Local currency code (e.g., USD, GBp, JPY).'),
+    ticker: z.string().describe('Ticker or identifier: AAPL, VWCE, BTC, GOLD-BAR, CASH-EUR'),
+    shares: z.number().describe('Quantity: shares, coins, ounces, or the cash amount for cash'),
+    avg_cost: z.number().describe('Average cost per unit in `currency` (1 for cash)'),
+    currency: z.string().default('USD').describe('Currency of the cost (EUR, USD, GBp, AMD…)'),
     opened: z.string().describe('Date opened in YYYY-MM-DD.'),
     thesis: z.string().describe('One-sentence reason for the position.'),
     conviction: z.enum(['low', 'med', 'high'] as const).describe('Conviction in the thesis.'),
-    target_price: z.number().optional().describe('Target price (optional).'),
-    stop_loss: z.number().optional().describe('Stop loss (optional).'),
-    size_rationale: z.string().optional().describe('Why this size (optional).'),
+    ...positionFields,
   }),
   func: async (input) => {
     const pos: Position = {
+      ...input,
       ticker: input.ticker.toUpperCase(),
-      shares: input.shares,
-      avg_cost: input.avg_cost,
       currency: input.currency.toUpperCase(),
-      opened: input.opened,
-      thesis: input.thesis,
       conviction: input.conviction as Conviction,
-      target_price: input.target_price,
-      stop_loss: input.stop_loss,
-      size_rationale: input.size_rationale,
     };
     try {
       const p = store.addPosition(pos);
       return formatToolResult({ ok: true, position: pos, total_open: p.positions.length });
+    } catch (error) {
+      return formatToolResult({ ok: false, error: error instanceof Error ? error.message : String(error) });
+    }
+  },
+});
+
+/** The one position a ticker (and account, when given) points at; an error naming the choices when ambiguous. */
+function locate(positions: Position[], ticker: string, account?: string): number | string {
+  const hits = positions.map((x, i) => ({ x, i })).filter(({ x }) =>
+    x.ticker.toUpperCase() === ticker.toUpperCase() && (!account || (x.account ?? '') === account));
+  if (hits.length === 1) return hits[0]!.i;
+  if (!hits.length) return `No open position in ${ticker.toUpperCase()}${account ? ` at ${account}` : ''}.`;
+  return `${ticker.toUpperCase()} is held in several accounts (${hits.map((h) => h.x.account ?? 'none').join(', ')}): name the account.`;
+}
+
+export const portfolioUpdate = new DynamicStructuredTool({
+  name: 'portfolio_update',
+  description:
+    'Change an open position in place: quantity and average cost after a purchase or partial sale you are recording, a new manual price, the account, thesis, conviction, target or stop. A durable change: confirm with the owner first.',
+  schema: z.object({
+    ticker: z.string(),
+    account: z.string().optional().describe('Needed when the ticker is held in several accounts'),
+    shares: z.number().optional(),
+    avg_cost: z.number().optional(),
+    thesis: z.string().optional(),
+    conviction: z.enum(['low', 'med', 'high'] as const).optional(),
+    new_account: z.string().optional().describe('Move the position to another account (e.g. after a broker transfer)'),
+    ...Object.fromEntries(Object.entries(positionFields).filter(([k]) => k !== 'account')) as Omit<typeof positionFields, 'account'>,
+  }),
+  func: async ({ ticker, account, new_account, ...changes }) => {
+    try {
+      let updated: Position | undefined;
+      store.update((p) => {
+        const i = locate(p.positions, ticker, account);
+        if (typeof i === 'string') throw new Error(i);
+        const clean = Object.fromEntries(Object.entries(changes).filter(([, v]) => v !== undefined));
+        updated = { ...p.positions[i]!, ...clean, ...(new_account ? { account: new_account } : {}) } as Position;
+        const positions = [...p.positions];
+        positions[i] = updated;
+        return { ...p, positions };
+      });
+      return formatToolResult({ ok: true, position: updated });
     } catch (error) {
       return formatToolResult({ ok: false, error: error instanceof Error ? error.message : String(error) });
     }
@@ -125,19 +179,23 @@ export const portfolioRemove = new DynamicStructuredTool({
   description: PORTFOLIO_REMOVE_DESCRIPTION,
   schema: z.object({
     ticker: z.string().describe('Ticker of the position to close.'),
+    account: z.string().optional().describe('Needed when the ticker is held in several accounts'),
+    shares: z.number().optional().describe('Sell only this many (partial sale); default all'),
     exit_price: z.number().describe('Exit price per share.'),
     closed: z.string().describe('Closing date YYYY-MM-DD.'),
     lesson: z.string().default('').describe('What you learned (encouraged but optional).'),
   }),
   func: async (input) => {
     const upper = input.ticker.toUpperCase();
+    try {
     return formatToolResult(
       store.update((p) => {
-        const idx = p.positions.findIndex((x) => x.ticker.toUpperCase() === upper);
-        if (idx === -1) {
-          throw new Error(`No open position in ${upper}.`);
-        }
-        const pos = p.positions[idx];
+        const found = locate(p.positions, upper, input.account);
+        if (typeof found === 'string') throw new Error(found);
+        const idx = found;
+        const held = p.positions[idx]!;
+        const sold = input.shares && input.shares < held.shares ? input.shares : held.shares;
+        const pos = { ...held, shares: sold };
         const realizedPnl = pos.shares * (input.exit_price - pos.avg_cost);
         const realizedPnlPct = pos.avg_cost === 0 ? 0 : ((input.exit_price - pos.avg_cost) / pos.avg_cost) * 100;
         const closed = {
@@ -150,11 +208,17 @@ export const portfolioRemove = new DynamicStructuredTool({
         };
         return {
           ...p,
-          positions: p.positions.filter((_, i) => i !== idx),
+          // A partial sale keeps the rest open at the same average cost.
+          positions: sold < held.shares
+            ? p.positions.map((x, i) => (i === idx ? { ...x, shares: held.shares - sold } : x))
+            : p.positions.filter((_, i) => i !== idx),
           closed: [closed, ...p.closed],
         };
       }),
     );
+    } catch (error) {
+      return formatToolResult({ ok: false, error: error instanceof Error ? error.message : String(error) });
+    }
   },
 });
 

@@ -62,7 +62,7 @@ export function withholdingRate(p: {
   const country = issuerCountry(p.isin);
   if (!country) return { rate: 0, note: 'no ISIN, so the issuer country and its withholding are unknown' };
   if (country === p.residence) return { rate: 0, country };
-  if (p.assetType === 'etf' && (country === 'IE' || country === 'LU')) {
+  if ((p.assetType === 'etf' || p.assetType === 'fund') && (country === 'IE' || country === 'LU')) {
     return { rate: 0, country, note: `${country}-domiciled fund: distributions are paid gross` };
   }
   if (country === 'US') return { rate: p.account.w8ben ? 0.15 : 0.3, country, note: p.account.w8ben ? 'W-8BEN on file' : 'no W-8BEN: 30 % US withholding' };
@@ -123,7 +123,7 @@ export function taxOnPayment(p: {
     };
   }
 
-  const exemption = p.assetType === 'etf' ? (p.partialExemptionPct ?? j.fundExemptionPct) / 100 : 0;
+  const exemption = p.assetType === 'etf' || p.assetType === 'fund' ? (p.partialExemptionPct ?? j.fundExemptionPct) / 100 : 0;
   if (exemption > 0) notes.push(`${Math.round(exemption * 100)} % of fund income is tax-exempt`);
   const taxable = p.gross * (1 - exemption);
   const allowanceUsed = Math.min(taxable, Math.max(0, p.allowanceLeft) * p.basePerAllowanceUnit);
@@ -158,7 +158,7 @@ export function capitalGainsTax(p: {
 }): { tax: number; allowance_used: number } {
   const j = jurisdictionFor(p.profile.residence, p.profile.options);
   if (p.gain <= 0 || !j) return { tax: 0, allowance_used: 0 };
-  const exemption = p.assetType === 'etf' ? (p.partialExemptionPct ?? j.fundExemptionPct) / 100 : 0;
+  const exemption = p.assetType === 'etf' || p.assetType === 'fund' ? (p.partialExemptionPct ?? j.fundExemptionPct) / 100 : 0;
   const taxable = p.gain * (1 - exemption);
   const allowanceUsed = Math.min(taxable, Math.max(0, p.allowanceLeft) * p.basePerAllowanceUnit);
   return { tax: round2(j.tax({ base: taxable - allowanceUsed, credit: 0, options: p.profile.options })), allowance_used: round2(allowanceUsed) };

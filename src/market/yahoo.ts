@@ -210,8 +210,14 @@ export const yahoo: MarketData = {
     const a = from.toUpperCase();
     const b = to.toUpperCase();
     if (a === b) return 1;
-    const q = await this.quote(`${a}${b}=X`);
-    return q?.price ?? null;
+    // Yahoo lists many minor pairs one way only (EURAMD=X, not AMDEUR=X): try the inverse, then a USD cross.
+    const direct = await this.quote(`${a}${b}=X`);
+    if (direct?.price) return direct.price;
+    const inverse = await this.quote(`${b}${a}=X`);
+    if (inverse?.price) return 1 / inverse.price;
+    if (a === 'USD' || b === 'USD') return null;
+    const [toUsd, fromUsd] = await Promise.all([this.rate(a, 'USD'), this.rate('USD', b)]);
+    return toUsd && fromUsd ? toUsd * fromUsd : null;
   },
 
   async searchIsin(isin) {

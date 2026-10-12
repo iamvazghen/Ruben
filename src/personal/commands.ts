@@ -75,7 +75,7 @@ export async function runSpendingCommand(args: string): Promise<string> {
   return [
     `This month so far (${r.base_currency}):`,
     `  purchases ${line('Purchases')?.current ?? 0} · subscriptions ${line('Subscriptions')?.current ?? 0} · income ${line('Total income (net)')?.current ?? 0}`,
-    ...r.categories.slice(0, 6).map((c) => `  ${c.category.padEnd(14)} ${c.current}${c.budget ? ` of ${c.budget}` : ''}`),
+    ...r.categories.filter((c) => c.current > 0 || c.budget).slice(0, 8).map((c) => `  ${c.category.padEnd(14)} ${c.current}${c.budget ? ` of ${c.budget}` : ''}`),
     'Import a statement: /spending <path to CSV>, or send the CSV to the Telegram bot.',
   ].join('\n');
 }

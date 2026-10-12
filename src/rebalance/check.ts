@@ -34,9 +34,12 @@ export async function valueHoldings(market: MarketData): Promise<{ holdings: Val
     if (position.asset_type === 'cash') {
       const fx = await toBase(market, position.currency);
       if (fx) holdings.push({ position, price_local: 1, base_per_local: fx, base_per_cost: fx, value: position.shares * fx });
+      else missing.push(`${position.ticker} (no ${position.currency} rate)`);
       continue;
     }
-    const q = await market.quote(position.data_symbol ?? position.ticker);
+    // No market quote (unlisted, private, physical): the owner's dated manual price.
+    const q = (await market.quote(position.data_symbol ?? position.ticker))
+      ?? (position.manual_price ? { price: position.manual_price.amount, currency: position.manual_price.currency } : null);
     const fx = q ? await toBase(market, q.currency) : null;
     const costFx = q && position.currency !== q.currency ? await toBase(market, position.currency) : fx;
     if (!q || !fx || !costFx) { missing.push(position.ticker); continue; }
@@ -115,7 +118,8 @@ export async function classifyHoldings(market: MarketData): Promise<void> {
   const store = new PortfolioStore();
   const found = new Map<string, { region?: string; sector?: string }>();
   for (const p of store.read().positions) {
-    if (p.asset_type === 'etf' || p.asset_type === 'cash' || p.asset_type === 'bond' || (p.region && p.sector)) continue;
+    if (p.asset_type && p.asset_type !== 'stock') continue;
+    if (p.region && p.sector) continue;
     const prof = await market.profile(p.data_symbol ?? p.ticker);
     if (prof) found.set(p.ticker, { region: prof.country ? regionOf(prof.country) : undefined, sector: prof.sector ? key(prof.sector) : undefined });
   }

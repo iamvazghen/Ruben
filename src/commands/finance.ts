@@ -13,12 +13,22 @@ import { setSetting } from '../utils/config.js';
 import { baseCurrency, money, timeZone } from '../utils/locale.js';
 import { yahoo, type MarketData } from '../market/yahoo.js';
 import { runReportCommand, runSpendingCommand } from '../personal/commands.js';
+import { MONEY_COMMANDS } from './money-names.js';
+// Loaded on use: money.js reaches the tool registry, which imports this file.
+const loadMoney = () => import('./money.js');
 
 /**
  * Money commands answered by code, not the model, identically in the CLI and
  * on Telegram. Returns the reply, or null when `name` is not one of them.
  */
-export const FINANCE_COMMANDS = [...INCOME_COMMANDS, 'import', 'targets', 'rebalance', 'setup', 'judgements', 'spending', 'results'] as const;
+export const FINANCE_COMMANDS = [...INCOME_COMMANDS, 'import', 'targets', 'rebalance', 'setup', 'judgements', 'spending', 'results', ...MONEY_COMMANDS] as const;
+
+/** Commands that produce files the gateway sends as documents. */
+export async function runFileCommand(name: string, args: string): Promise<{ text: string; files: string[] } | null> {
+  if (name === 'results') return runReportCommand(args);
+  if (name === 'export') { const r = await (await loadMoney()).runMoneyCommand(name, args); return { text: r.text, files: r.files ?? [] }; }
+  return null;
+}
 
 /**
  * Which account an export belongs to: a broker named in the hint or file name,
@@ -49,6 +59,7 @@ export async function runFinanceCommand(name: string, args: string, market: Mark
   if (name === 'setup') return setup(args, market);
   if (name === 'judgements') return describeScores(await scoreJudgements(market));
   if (name === 'spending') return runSpendingCommand(args);
+  if ((MONEY_COMMANDS as readonly string[]).includes(name)) return (await (await loadMoney()).runMoneyCommand(name, args)).text;
   if (name === 'results') {
     const { text, files } = await runReportCommand(args);
     return files.length ? `${text}\n\nFiles:\n${files.join('\n')}` : text;

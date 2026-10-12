@@ -19,6 +19,17 @@ import { realEstateStore } from '../realestate/tools.js';
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
+async function byJurisdiction(byAccount: Record<string, { gross: number; foreign_tax_withheld: number; net: number }>) {
+  const { accountStore } = await import('../wealth/accounts.js');
+  const country = new Map(accountStore.read().accounts.map((a) => [a.id, a.country]));
+  const out: Record<string, { gross: number; foreign_tax_withheld: number; net: number }> = {};
+  for (const [acct, v] of Object.entries(byAccount)) {
+    const o = (out[country.get(acct) ?? 'unassigned'] ??= { gross: 0, foreign_tax_withheld: 0, net: 0 });
+    o.gross = r2(o.gross + v.gross); o.foreign_tax_withheld = r2(o.foreign_tax_withheld + v.foreign_tax_withheld); o.net = r2(o.net + v.net);
+  }
+  return out;
+}
+
 async function fx(currency: string): Promise<number | null> {
   return currency.toUpperCase() === baseCurrency().toUpperCase() ? 1 : yahoo.rate(currency, baseCurrency());
 }
@@ -61,10 +72,18 @@ export const taxYearSummaryTool = new DynamicStructuredTool({
 
     // 2. Realised gains and losses from closed positions.
     const sales = { shares_gain: 0, shares_loss: 0, other_gain: 0, other_loss: 0, count: 0 };
+    const privateSales: { ticker: string; type: string; account?: string; opened: string; closed: string; held_days: number; gain: number; over_one_year: boolean }[] = [];
     for (const c of new PortfolioStore().read().closed.filter((c) => c.closed.startsWith(String(y)))) {
       const rate = await fx(c.currency);
       if (rate == null) { notes.push(`no ${c.currency} rate: sale of ${c.ticker} left out`); continue; }
       const pnl = c.realized_pnl * rate;
+      // Crypto, commodities and private assets are not capital-market income in most systems:
+      // the holding period usually decides (Germany: tax-free after a year, § 23 EStG).
+      if (c.asset_type === 'crypto' || c.asset_type === 'commodity' || c.asset_type === 'other') {
+        const held = Math.round((Date.parse(c.closed) - Date.parse(c.opened)) / 86_400_000);
+        privateSales.push({ ticker: c.ticker, type: c.asset_type, account: c.account, opened: c.opened, closed: c.closed, held_days: held, gain: r2(pnl), over_one_year: held > 365 });
+        continue;
+      }
       const shares = (c.asset_type ?? 'stock') === 'stock';
       if (pnl >= 0) sales[shares ? 'shares_gain' : 'other_gain'] += pnl; else sales[shares ? 'shares_loss' : 'other_loss'] += -pnl;
       sales.count += 1;
@@ -107,8 +126,15 @@ export const taxYearSummaryTool = new DynamicStructuredTool({
 
     return formatToolResult({
       year: y, base_currency: baseCurrency(), residence: profile.residence, jurisdiction: j?.name ?? null,
+      investment_income_by_jurisdiction: await byJurisdiction(byAccount),
       investment_income_by_account: Object.fromEntries(Object.entries(byAccount).map(([k, v]) => [k, Object.fromEntries(Object.entries(v).map(([f, n]) => [f, typeof n === 'number' ? r2(n) : n]))])),
       sales: Object.fromEntries(Object.entries(sales).map(([k, v]) => [k, r2(v)])),
+      private_sales: privateSales.length ? {
+        items: privateSales,
+        short_term_net: r2(privateSales.filter((x) => !x.over_one_year).reduce((a, x) => a + x.gain, 0)),
+        long_term_net: r2(privateSales.filter((x) => x.over_one_year).reduce((a, x) => a + x.gain, 0)),
+        de_rule: profile.residence === 'DE' ? 'Germany: held over a year is tax-free; within a year taxed at the personal income-tax rate (Anlage SO) if the year\'s private-sale gains reach EUR 1,000 (Freigrenze: at or above it, all of it is taxable).' : undefined,
+      } : null,
       rentals,
       forms: profile.residence === 'DE' ? DE_FORMS : 'Form mapping is built in for Germany only; the figures above are the inputs every system asks for.',
       planning,

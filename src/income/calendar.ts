@@ -54,7 +54,8 @@ export async function eventsForPosition(p: Position, market: MarketData, today: 
     partialExemptionPct: p.partial_exemption_pct,
   };
 
-  if (p.asset_type === 'cash') return [];
+  // Cash, crypto, commodities and private assets pay no dividends.
+  if (p.asset_type === 'cash' || p.asset_type === 'crypto' || p.asset_type === 'commodity' || p.asset_type === 'other') return [];
 
   if (p.asset_type === 'bond') {
     if (!p.coupon_rate_pct || !p.coupon_frequency || !p.next_coupon_date || !p.face_value) return [];
@@ -71,7 +72,7 @@ export async function eventsForPosition(p: Position, market: MarketData, today: 
   const symbol = p.data_symbol ?? p.ticker;
   const history = await market.dividendHistory(symbol);
   if (!history || history.dividends.length === 0) return []; // accumulating fund or no payer
-  const kind: IncomeKind = p.asset_type === 'etf' || history.instrumentType === 'ETF' ? 'distribution' : 'dividend';
+  const kind: IncomeKind = p.asset_type === 'etf' || p.asset_type === 'fund' || history.instrumentType === 'ETF' ? 'distribution' : 'dividend';
   const past = history.dividends;
   const perYear = paymentsPerYear(past.map((d) => d.exDate));
   const last = past[past.length - 1]!;
