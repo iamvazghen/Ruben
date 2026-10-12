@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, setSystemTime, test } from 'bun:test';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -82,7 +82,13 @@ describe('Telegram: import, configure, get reminded', () => {
   test('/setup and /tax are answered by code, with the bot-name suffix Telegram adds', async () => {
     expect(await say('/setup@ruben_bot')).toContain('Time zone: America/New_York');
     expect(await say('/tax set residence US')).toContain('Tax residence: US');
-    expect(await say('/income refresh')).toContain('KO:2026-09-15');
+    // The fixture's next KO dividend is 2026-09-15: pin the clock to before it, or it rolls off.
+    setSystemTime(new Date('2026-09-10T12:00:00Z'));
+    try {
+      expect(await say('/income refresh')).toContain('KO:2026-09-15');
+    } finally {
+      setSystemTime();
+    }
   });
 
   test('the pay-date reminder goes out through Telegram exactly as computed, with no model', async () => {

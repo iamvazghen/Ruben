@@ -6,12 +6,12 @@ import { theme } from '../theme.js';
 import { BOX_MIN_WIDTH, box, hangingWrap } from './layout.js';
 
 const BANNER = [
-  '██████╗ ██╗   ██╗██████╗  ██████╗ ',
-  '██╔══██╗██║   ██║██╔══██╗██╔═══██╗',
-  '██████╔╝██║   ██║██████╔╝██║   ██║',
-  '██╔══██╗██║   ██║██╔══██╗██║   ██║',
-  '██║  ██║╚██████╔╝██████╔╝╚██████╔╝',
-  '╚═╝  ╚═╝ ╚═════╝ ╚═════╝  ╚═════╝ ',
+  '██████╗ ██╗   ██╗██████╗ ███████╗███╗   ██╗',
+  '██╔══██╗██║   ██║██╔══██╗██╔════╝████╗  ██║',
+  '██████╔╝██║   ██║██████╔╝█████╗  ██╔██╗ ██║',
+  '██╔══██╗██║   ██║██╔══██╗██╔══╝  ██║╚██╗██║',
+  '██║  ██║╚██████╔╝██████╔╝███████╗██║ ╚████║',
+  '╚═╝  ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝',
 ];
 
 const GUTTER = '  ';
@@ -74,7 +74,7 @@ export class IntroComponent implements Component {
             '',
             '  ',
           ).map((raw) => ({ raw })),
-          ...hangingWrap(theme.muted('Financial research agent'), inner, '').map((raw) => ({ raw })),
+          ...hangingWrap(theme.muted('Return Unified Balance Equity Network'), inner, '').map((raw) => ({ raw })),
           { raw: '' },
           ...row(
             'mode',

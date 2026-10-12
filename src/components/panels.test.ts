@@ -122,7 +122,7 @@ describe('startup noise', () => {
 
 describe('responsive layout', () => {
   test('the block banner is dropped when the terminal is too narrow for it', () => {
-    // 36 columns of block letters wrap into rubble on a narrow window.
+    // 45 columns of block letters wrap into rubble on a narrow window.
     const wide = renderedText(new IntroComponent('gpt-4o', 'OpenAI', 3));
     expect(wide).toContain('█');
 

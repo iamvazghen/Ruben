@@ -1,10 +1,10 @@
-# RUBEN
+# RUBEN — Return Unified Balance Equity Network
 
 **RUBEN** is a self-hosted financial-research agent. It lives in your terminal and your Telegram, and it does the work of a junior analyst: pulling live data across **84 tools**, citing every claim, running a multi-agent debate on high-conviction trades, and remembering your portfolio between sessions.
 
 What separates it from a chatbot with a stock API is the **grading engine**: every company gets a deterministic **0-100 score on two horizons** — 1-3 years and 20+ years — computed in code from a fixed factor set, so the same inputs give the same number in March and in September. Grades are written to a ledger with the price at the time, which turns a stream of opinions into a track record you can check.
 
-Ships configured for **MiniMax M2.5**, and wired to 10 LLM providers (OpenAI · Anthropic · Google · xAI · DeepSeek · Moonshot · OpenRouter · MiniMax · FreeLLMAPI · Ollama) so you can pick the right model per query type.
+Ships configured for **MiniMax M3.1 Flash Preview**, and wired to 10 LLM providers (OpenAI · Anthropic · Google · xAI · DeepSeek · Moonshot · OpenRouter · MiniMax · FreeLLMAPI · Ollama) so you can pick the right model per query type.
 
 ---
 
@@ -274,7 +274,7 @@ The **portfolio store** tracks thesis + conviction + target + stop per position;
 ## Install
 
 ```bash
-git clone https://github.com/iamvazghen/rubo.git
+git clone https://github.com/iamvazghen/Ruben.git
 cd ruben
 bun install
 cp env.example .env
@@ -475,7 +475,7 @@ terminal.
 ### Linux (systemd)
 
 ```bash
-git clone https://github.com/iamvazghen/rubo.git ~/rubo && cd ~/rubo
+git clone https://github.com/iamvazghen/Ruben.git ~/ruben && cd ~/ruben
 npm install
 cp env.example .env && $EDITOR .env       # keys
 mkdir -p ~/.ruben                        # state: memory, portfolio, scores, cron

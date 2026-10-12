@@ -113,4 +113,4 @@ echo -e "$BODY" | gh release create "$TAG" \
   --notes-file -
 
 echo ""
-echo "Released ${TAG}: https://github.com/virattt/rubo/releases/tag/${TAG}"
+echo "Released ${TAG}: https://github.com/iamvazghen/Ruben/releases/tag/${TAG}"

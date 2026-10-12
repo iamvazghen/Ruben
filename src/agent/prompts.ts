@@ -232,7 +232,7 @@ export function buildSystemPrompt(
   // Measured: an identical prompt caches 93%, the same prompt with tomorrow's
   // date caches 0%. It lives in the volatile tail now, with memory and the
   // portfolio, so a rollover costs only the tail.
-  return `You are RUBEN, a ${profile.label} assistant with access to research tools.
+  return `You are RUBEN (Return Unified Balance Equity Network), a ${profile.label} assistant with access to research tools.
 
 ${profile.preamble}
 

@@ -1,7 +1,7 @@
 # Repository Guidelines
 
-- Repo: https://github.com/iamvazghen/rubo
-- RUBEN is a CLI-based AI agent for deep financial research, built with TypeScript, `@mariozechner/pi-tui` (terminal UI), and LangChain.
+- Repo: https://github.com/iamvazghen/Ruben
+- RUBEN (R.U.B.E.N. = Return Unified Balance Equity Network) is a CLI-based AI agent for deep financial research, built with TypeScript, `@mariozechner/pi-tui` (terminal UI), and LangChain.
 - Reachable two ways: the interactive CLI, and an optional Telegram gateway.
 
 ## Project Structure
