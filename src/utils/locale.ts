@@ -9,7 +9,7 @@ import { getSetting } from './config.js';
 export function timeZone(): string {
   return (
     getSetting<string>('timezone', '') ||
-    process.env.RUBO_TIMEZONE ||
+    process.env.RUBEN_TIMEZONE ||
     Intl.DateTimeFormat().resolvedOptions().timeZone ||
     'UTC'
   );
@@ -17,7 +17,7 @@ export function timeZone(): string {
 
 /** Currency every portfolio and income amount is reported in. Default: USD. */
 export function baseCurrency(): string {
-  return (getSetting<string>('base_currency', '') || process.env.RUBO_BASE_CURRENCY || 'USD').toUpperCase();
+  return (getSetting<string>('base_currency', '') || process.env.RUBEN_BASE_CURRENCY || 'USD').toUpperCase();
 }
 
 const SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'CHF ', CAD: 'C$', AUD: 'A$' };

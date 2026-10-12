@@ -6,8 +6,8 @@ import type { MarketData } from '../market/yahoo.js';
 import { parseBrokerExport, parseNumber } from './parse.js';
 
 let home: string;
-beforeEach(() => { home = mkdtempSync(join(tmpdir(), 'rubo-import-')); process.env.RUBO_HOME = home; });
-afterEach(() => { delete process.env.RUBO_HOME; rmSync(home, { recursive: true, force: true }); });
+beforeEach(() => { home = mkdtempSync(join(tmpdir(), 'ruben-import-')); process.env.RUBEN_HOME = home; });
+afterEach(() => { delete process.env.RUBEN_HOME; rmSync(home, { recursive: true, force: true }); });
 
 /** Shape of an IBKR Activity Statement CSV (sections, Header/Data rows). */
 const IBKR = `Statement,Header,Field Name,Field Value

@@ -8,7 +8,7 @@
  * ledger so the report leads with changes rather than levels.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { ruboPath } from '../utils/paths.js';
+import { rubenPath } from '../utils/paths.js';
 import { PortfolioStore } from '../tools/portfolio/index.js';
 import { fetchBundle } from './data.js';
 import { gradeBundle, previousScore, recordScore, type Grade } from './grade.js';
@@ -17,7 +17,7 @@ import type { Horizon } from './factors.js';
 /**
  * Default universe: large, liquid, long-listed US names across sectors. It is a
  * starting point, not a recommendation — override it by writing a JSON array of
- * tickers to `<rubo>/universe.json`.
+ * tickers to `<ruben>/universe.json`.
  */
 const DEFAULT_UNIVERSE = [
   'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA', 'AVGO', 'ORCL', 'CRM', 'ADBE',
@@ -28,7 +28,7 @@ const DEFAULT_UNIVERSE = [
 ];
 
 export function universePath(): string {
-  return ruboPath('universe.json');
+  return rubenPath('universe.json');
 }
 
 export function loadUniverse(): string[] {
@@ -49,7 +49,7 @@ export function loadUniverse(): string[] {
 export function saveUniverse(tickers: string[]): string[] {
   const clean = [...new Set(tickers.map((t) => t.trim().toUpperCase()).filter(Boolean))];
   const path = universePath();
-  mkdirSync(ruboPath(), { recursive: true });
+  mkdirSync(rubenPath(), { recursive: true });
   writeFileSync(path, JSON.stringify(clean, null, 2), 'utf-8');
   return clean;
 }
@@ -307,7 +307,7 @@ function renderMarkdown(r: UniverseReport): string {
 }
 
 function writeReport(r: UniverseReport): string {
-  const dir = ruboPath('reports');
+  const dir = rubenPath('reports');
   mkdirSync(dir, { recursive: true });
   const path = `${dir}/${r.at.slice(0, 10)}-${r.horizon}.md`;
   writeFileSync(path, r.markdown, 'utf-8');

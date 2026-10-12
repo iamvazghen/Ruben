@@ -69,7 +69,7 @@ export class IntroComponent implements Component {
       ...box(
         [
           ...hangingWrap(
-            `${theme.primary('✻')} ${theme.bold('Welcome to Rubo')} ${theme.muted(`v${packageJson.version}`)}`,
+            `${theme.primary('✻')} ${theme.bold('Welcome to RUBEN')} ${theme.muted(`v${packageJson.version}`)}`,
             inner,
             '',
             '  ',

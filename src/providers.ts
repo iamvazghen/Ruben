@@ -100,7 +100,7 @@ export const PROVIDERS: ProviderDef[] = [
     apiKeyEnvVar: 'MINIMAX_API_KEY',
     baseUrlEnvVar: 'MINIMAX_BASE_URL',
     baseUrlDefault: 'https://api.minimax.io/v1',
-    fastModel: 'minimax:MiniMax-M2.5-highspeed',
+    fastModel: 'minimax:MiniMax-M3.1-Flash-Preview',
     contextWindow: 200_000,
   },
 ];

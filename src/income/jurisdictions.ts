@@ -4,7 +4,7 @@
  * To support another country, add an entry here (and a test). Until then an
  * owner anywhere can still describe their own rules without code, through the
  * profile options `flat_rate`, `allowance` and `credit_cap_rate` - see
- * `customJurisdiction`. With neither, Rubo models source withholding only and
+ * `customJurisdiction`. With neither, RUBEN models source withholding only and
  * says so on every figure.
  */
 
@@ -76,7 +76,7 @@ const austria: Jurisdiction = {
 export const JURISDICTIONS: Record<string, Jurisdiction> = { DE: germany, AT: austria };
 
 /**
- * An owner's own flat rules, for a country Rubo has no entry for:
+ * An owner's own flat rules, for a country RUBEN has no entry for:
  * `/tax set flat_rate 0.2`, `/tax set allowance 500`, `/tax set credit_cap_rate 0.15`.
  */
 export function customJurisdiction(residence: string, options: TaxOptions): Jurisdiction | null {

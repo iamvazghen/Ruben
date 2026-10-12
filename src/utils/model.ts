@@ -35,6 +35,7 @@ const PROVIDER_MODELS: Record<string, Model[]> = {
     { id: 'deepseek-v4-flash', displayName: 'DeepSeek V4 Flash' },
   ],
   minimax: [
+    { id: 'MiniMax-M3.1-Flash-Preview', displayName: 'MiniMax M3.1 Flash Preview' },
     { id: 'MiniMax-M2.5', displayName: 'MiniMax M2.5' },
     { id: 'MiniMax-M2.5-highspeed', displayName: 'MiniMax M2.5 High-Speed' },
     { id: 'MiniMax-M3', displayName: 'MiniMax M3' },

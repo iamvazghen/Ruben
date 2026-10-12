@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { ruboPath } from '../../utils/paths.js';
+import { rubenPath } from '../../utils/paths.js';
 
 export type SessionEntry = {
   sessionKey: string;
@@ -17,7 +17,7 @@ export type SessionEntry = {
 export type SessionStore = Record<string, SessionEntry>;
 
 export function resolveSessionStorePath(agentId: string): string {
-  const base = process.env.RUBO_SESSIONS_DIR ?? ruboPath('sessions');
+  const base = process.env.RUBEN_SESSIONS_DIR ?? rubenPath('sessions');
   return join(base, agentId, 'sessions.json');
 }
 

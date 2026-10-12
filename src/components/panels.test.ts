@@ -130,7 +130,7 @@ describe('responsive layout', () => {
     const narrowText = narrow.render(30).join('\n');
     expect(narrowText).not.toContain('█');
     // The name stays on screen, in the welcome box.
-    expect(narrowText).toContain('Rubo');
+    expect(narrowText).toContain('RUBEN');
   });
 
   test('a very narrow terminal drops the wordmark too but keeps the facts', () => {

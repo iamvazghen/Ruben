@@ -52,10 +52,11 @@ yarn-error.log*
 # Cursor files
 .cursor/
 
-# Rubo context files (offloaded tool outputs)
-.rubo/*
-# Pre-rename state directory (project was called Antoine) - still private data
+# RUBEN context files (offloaded tool outputs)
+.ruben/*
+# Pre-rename state directories (Antoine, then Rubo) - still private data
 .antoine/
+.rubo/
 
 
 logs/

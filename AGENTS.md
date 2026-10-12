@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 - Repo: https://github.com/iamvazghen/rubo
-- Rubo is a CLI-based AI agent for deep financial research, built with TypeScript, `@mariozechner/pi-tui` (terminal UI), and LangChain.
+- RUBEN is a CLI-based AI agent for deep financial research, built with TypeScript, `@mariozechner/pi-tui` (terminal UI), and LangChain.
 - Reachable two ways: the interactive CLI, and an optional Telegram gateway.
 
 ## Project Structure
@@ -20,9 +20,9 @@
   - Skills: `src/skills/` (SKILL.md-based extensible workflows, e.g. DCF valuation)
   - Utils: `src/utils/` (env, config, caching, token estimation, markdown tables)
   - Evals: `src/evals/` (LangSmith evaluation runner with Ink UI)
-- Config: `.rubo/settings.json` (persisted model/provider selection), `.rubo/gateway.json` (channels)
+- Config: `.ruben/settings.json` (persisted model/provider selection), `.ruben/gateway.json` (channels)
 - Environment: `.env` (API keys; see `env.example`)
-- Global launcher: `rubo` (runs the CLI from any folder); see README "How to Run"
+- Global launcher: `ruben` (runs the CLI from any folder); see README "How to Run"
 - Scripts: `scripts/release.sh`
 
 ## Build, Test, and Development Commands
@@ -75,7 +75,7 @@
 - Gateway entry: `src/gateway/index.ts` (`run` | `login` | `telegram`). Bootstrap: `src/gateway/gateway.ts`.
 - Channels under `src/gateway/channels/`: `telegram/` (Bot API long-polling).
 - Add a channel by implementing `ChannelPlugin` (`channels/types.ts`) and registering a manager in `startGateway`.
-- Config + per-account resolution: `src/gateway/config.ts` (`.rubo/gateway.json`).
+- Config + per-account resolution: `src/gateway/config.ts` (`.ruben/gateway.json`).
 
 ## Skills
 
@@ -120,5 +120,5 @@
 ## Security
 
 - API keys stored in `.env` (gitignored). Users can also enter keys interactively via the CLI.
-- Config stored in `.rubo/settings.json` (gitignored).
+- Config stored in `.ruben/settings.json` (gitignored).
 - Never commit or expose real API keys, tokens, or credentials.

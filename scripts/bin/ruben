@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# POSIX twin of ruben.cmd, for Git Bash / WSL / MSYS.
+#
+# PowerShell and cmd resolve a bare `ruben` to ruben.cmd through PATHEXT.
+# Bash has no such mechanism and only runs an exact filename match, so without
+# this file `ruben` is "command not found" in Git Bash even though the shim
+# is right there on PATH.
+set -euo pipefail
+
+# Settings (environment variables):
+#   RUBEN_REPO      the checkout; default: two levels above this script, if it is one
+#   RUBEN_VPS       user@host running the gateway; needed only for pull/push/vps/logs
+#   RUBEN_VPS_HOME  state directory there (default ~/.ruben)
+#   RUBEN_VPS_UNIT  systemd user unit there (default ruben-gateway)
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." 2>/dev/null && pwd || true)"
+if [ -z "${RUBEN_REPO:-}" ] && [ -f "$here/src/index.tsx" ]; then RUBEN_REPO="$here"; fi
+: "${RUBEN_VPS_HOME:=~/.ruben}"
+: "${RUBEN_VPS_UNIT:=ruben-gateway}"
+
+if [ ! -f "${RUBEN_REPO:-}/src/index.tsx" ]; then
+  echo "[ruben] No RUBEN checkout found. Set RUBEN_REPO to it, e.g.: export RUBEN_REPO=~/ruben" >&2
+  exit 1
+fi
+case "${1:-}" in
+  pull|push|vps|logs)
+    if [ -z "${RUBEN_VPS:-}" ]; then
+      echo "[ruben] \"$1\" talks to your server. Set RUBEN_VPS first, e.g.: export RUBEN_VPS=user@your-server" >&2
+      exit 1
+    fi
+    ;;
+esac
+
+# Pin state to the checkout so memory, portfolio, scores and cron jobs are the
+# same set regardless of the directory this was launched from.
+: "${RUBEN_HOME:=$RUBEN_REPO/.ruben}"
+export RUBEN_HOME
+
+cd "$RUBEN_REPO"
+
+case "${1:-}" in
+  gateway)
+    # Telegram + scheduled reviews. The VPS owns this in normal operation;
+    # running it here too would make two processes poll the same bot token.
+    shift
+    exec bun run gateway "$@"
+    ;;
+  health)
+    exec bun run health
+    ;;
+  test)
+    exec bun test
+    ;;
+  pull)
+    # The VPS is authoritative: Telegram conversations and the scheduled
+    # reviews all write there.
+    echo "[ruben] pulling memory, scores and sessions from $RUBEN_VPS"
+    scp -q "$RUBEN_VPS:$RUBEN_VPS_HOME/memory/MEMORY.md" "$RUBEN_HOME/memory/MEMORY.md"
+    scp -qr "$RUBEN_VPS:$RUBEN_VPS_HOME/scores" "$RUBEN_HOME/"
+    # Telegram sessions live on the VPS; copy them so `/resume telegram:...` works here.
+    mkdir -p "$RUBEN_HOME/sessions"
+    scp -q "$RUBEN_VPS:$RUBEN_VPS_HOME/sessions/*_*.json" "$RUBEN_HOME/sessions/" 2>/dev/null || echo "[ruben] no sessions on the VPS yet"
+    # Holdings, income plan, tax profile and targets: the VPS sends the reminders, so it holds the truth.
+    scp -q "$RUBEN_VPS:$RUBEN_VPS_HOME/portfolio.json" "$RUBEN_HOME/" 2>/dev/null || true
+    scp -qr "$RUBEN_VPS:$RUBEN_VPS_HOME/income" "$RUBEN_VPS:$RUBEN_VPS_HOME/rebalance" "$RUBEN_HOME/" 2>/dev/null || true
+    echo "[ruben] done"
+    ;;
+  push)
+    echo "[ruben] pushing local memory and sessions to $RUBEN_VPS"
+    scp -q "$RUBEN_HOME/memory/MEMORY.md" "$RUBEN_VPS:$RUBEN_VPS_HOME/memory/MEMORY.md"
+    # CLI sessions, so Telegram can `/resume cli:...`. A session edited on both
+    # sides since the last sync keeps the copy pushed last.
+    ssh "$RUBEN_VPS" "mkdir -p $RUBEN_VPS_HOME/sessions"
+    scp -q "$RUBEN_HOME"/sessions/*_*.json "$RUBEN_VPS:$RUBEN_VPS_HOME/sessions/" 2>/dev/null || echo "[ruben] no local sessions to push"
+    # Holdings and income settings changed here (e.g. /import in the CLI) must reach the VPS for reminders.
+    [ -f "$RUBEN_HOME/portfolio.json" ] && scp -q "$RUBEN_HOME/portfolio.json" "$RUBEN_VPS:$RUBEN_VPS_HOME/"
+    for d in income rebalance; do [ -d "$RUBEN_HOME/$d" ] && scp -qr "$RUBEN_HOME/$d" "$RUBEN_VPS:$RUBEN_VPS_HOME/"; done
+    true
+    echo "[ruben] done - restart the gateway there if it should pick it up now"
+    ;;
+  vps)
+    ssh "$RUBEN_VPS" "systemctl --user ${2:-status} $RUBEN_VPS_UNIT; systemctl --user is-active $RUBEN_VPS_UNIT"
+    ;;
+  logs)
+    ssh "$RUBEN_VPS" "tail -n 40 $RUBEN_VPS_HOME/gateway.log"
+    ;;
+  ask)
+    # One-shot query for other processes: answer on stdout, no TTY needed.
+    shift
+    exec node --import tsx src/ask.ts "$@"
+    ;;
+  *)
+    # The interactive TUI needs a real terminal. Refuse clearly rather than
+    # hanging forever on a pipe, which is what happens otherwise.
+    if [ ! -t 0 ] || [ ! -t 1 ]; then
+      echo "[ruben] The interactive UI needs a terminal (stdin/stdout are not a TTY here)." >&2
+      echo "[ruben] Run it from Windows Terminal, PowerShell or a real shell." >&2
+      echo "[ruben] Non-interactive subcommands that do work: ask, health, test, pull, push, vps, logs" >&2
+      exit 1
+    fi
+    # Node, not Bun: Bun on Windows never reports terminal resizes.
+    exec node --import tsx src/index.tsx "$@"
+    ;;
+esac

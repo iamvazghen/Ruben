@@ -6,14 +6,14 @@ import type { MarketData } from '../market/yahoo.js';
 
 let home: string;
 beforeEach(() => {
-  home = mkdtempSync(join(tmpdir(), 'rubo-income-'));
-  process.env.RUBO_HOME = home;
-  process.env.RUBO_TIMEZONE = 'Europe/Berlin';
+  home = mkdtempSync(join(tmpdir(), 'ruben-income-'));
+  process.env.RUBEN_HOME = home;
+  process.env.RUBEN_TIMEZONE = 'Europe/Berlin';
   process.env.TYPESAFE_API_KEY = '';
 });
 afterEach(() => {
-  delete process.env.RUBO_HOME;
-  delete process.env.RUBO_TIMEZONE;
+  delete process.env.RUBEN_HOME;
+  delete process.env.RUBEN_TIMEZONE;
   rmSync(home, { recursive: true, force: true });
 });
 

@@ -4,7 +4,7 @@ import { theme } from '../theme.js';
 import { getActiveProviderNames, getAllProviderNames } from '../tools/finance/providers/index.js';
 import { getActiveNewsProviderNames, getAllNewsProviderNames } from '../tools/news/index.js';
 import { formatUsd } from '../utils/cost.js';
-import { ruboPath } from '../utils/paths.js';
+import { rubenPath } from '../utils/paths.js';
 import { clearToolCache, getToolCacheStats } from '../utils/tool-cache.js';
 
 /**
@@ -15,7 +15,7 @@ import { clearToolCache, getToolCacheStats } from '../utils/tool-cache.js';
 
 export async function rulesLines(): Promise<string[]> {
   try {
-    return [theme.muted('Research Rules:'), await readFile(ruboPath('RULES.md'), 'utf-8')];
+    return [theme.muted('Research Rules:'), await readFile(rubenPath('RULES.md'), 'utf-8')];
   } catch {
     return [theme.muted('No research rules set. Use "add a rule <text>" to create one.')];
   }

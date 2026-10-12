@@ -1,6 +1,6 @@
 import { AIMessage, AIMessageChunk, SystemMessage, HumanMessage, ToolMessage, type BaseMessage } from '@langchain/core/messages';
 import { StructuredToolInterface } from '@langchain/core/tools';
-import { callLlmWithMessages, streamLlmWithMessages } from '../model/llm.js';
+import { callLlmWithMessages, streamLlmWithMessages, DEFAULT_MODEL as LLM_DEFAULT_MODEL } from '../model/llm.js';
 import { getTools, getToolConcurrencyMap } from '../tools/registry.js';
 import { buildSystemPrompt, loadSoulDocument, loadRulesDocument } from './prompts.js';
 import { extractTextContent, hasToolCalls } from '../utils/ai-message.js';
@@ -22,7 +22,8 @@ import { runMemoryFlush, shouldRunMemoryFlush } from '../memory/flush.js';
 import { resolveProvider } from '../providers.js';
 
 
-const DEFAULT_MODEL = 'freellmapi:auto';
+// freellmapi went with the 2026-10-10 VPS wipe; fall back to the configured default.
+const DEFAULT_MODEL = LLM_DEFAULT_MODEL;
 const DEFAULT_MAX_ITERATIONS = 20;
 const MAX_OVERFLOW_RETRIES = 2;
 const OVERFLOW_KEEP_ROUNDS = 3;
@@ -131,7 +132,7 @@ export class Agent {
     const startTime = Date.now();
 
     if (this.tools.length === 0) {
-      yield { type: 'done', answer: 'No tools available. Please check your API key configuration.', toolCalls: [], iterations: 0, totalTime: Date.now() - startTime };
+      yield { type: 'done', answer: 'No tools available. Please check your API key configuration.', failed: true, toolCalls: [], iterations: 0, totalTime: Date.now() - startTime };
       return;
     }
 
@@ -189,6 +190,7 @@ export class Agent {
           yield {
             type: 'done',
             answer: `Error: ${formatUserFacingError(errorMessage, provider)}`,
+            failed: true,
             toolCalls: ctx.scratchpad.getToolCallRecords(),
             iterations: ctx.iteration,
             totalTime,

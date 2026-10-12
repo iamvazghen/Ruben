@@ -3,31 +3,31 @@ import { existsSync, mkdirSync, writeFileSync, rmSync, mkdtempSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { buildCacheKey, readCache, writeCache } from './cache.js';
-import { ruboPath } from './paths.js';
+import { rubenPath } from './paths.js';
 
 /**
  * Ask the resolver where the cache is rather than assuming.
  *
- * This used to hard-code '.rubo/cache'. ruboPath() prefers ./.rubo when
- * that directory exists and falls back to ~/.rubo when it does not - so on a
- * developer checkout the guess was right, and on a fresh CI checkout (.rubo is
- * gitignored) the test wrote a corrupt entry to ./.rubo/cache while readCache
- * looked in ~/.rubo/cache. The two corrupt-entry cases then failed on every
+ * This used to hard-code '.ruben/cache'. rubenPath() prefers ./.ruben when
+ * that directory exists and falls back to ~/.ruben when it does not - so on a
+ * developer checkout the guess was right, and on a fresh CI checkout (.ruben is
+ * gitignored) the test wrote a corrupt entry to ./.ruben/cache while readCache
+ * looked in ~/.ruben/cache. The two corrupt-entry cases then failed on every
  * push for weeks, in the one environment nobody was watching.
  */
-const TEST_HOME = mkdtempSync(join(tmpdir(), 'rubo-cache-test-'));
+const TEST_HOME = mkdtempSync(join(tmpdir(), 'ruben-cache-test-'));
 
 /**
- * Claim RUBO_HOME for the duration of each case, and ask the resolver where
+ * Claim RUBEN_HOME for the duration of each case, and ask the resolver where
  * the cache went rather than assuming.
  *
- * Two separate bugs met here. The path was hard-coded to '.rubo/cache', which
+ * Two separate bugs met here. The path was hard-coded to '.ruben/cache', which
  * matched a developer checkout and not a fresh CI one, so these two cases failed
- * on every push for weeks. And other suites set RUBO_HOME for their own
+ * on every push for weeks. And other suites set RUBEN_HOME for their own
  * scratch state, so a module-load-time reading of it went stale as soon as tests
  * ran together.
  */
-const cacheDir = () => ruboPath('cache');
+const cacheDir = () => rubenPath('cache');
 
 // ---------------------------------------------------------------------------
 // buildCacheKey
@@ -72,14 +72,14 @@ describe('buildCacheKey', () => {
 
 describe('readCache / writeCache', () => {
   beforeEach(() => {
-    process.env.RUBO_HOME = TEST_HOME;
+    process.env.RUBEN_HOME = TEST_HOME;
     if (existsSync(cacheDir())) {
       rmSync(cacheDir(), { recursive: true });
     }
   });
 
   afterEach(() => {
-    process.env.RUBO_HOME = TEST_HOME;
+    process.env.RUBEN_HOME = TEST_HOME;
     if (existsSync(cacheDir())) {
       rmSync(cacheDir(), { recursive: true });
     }

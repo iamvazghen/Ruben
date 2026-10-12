@@ -83,7 +83,7 @@ async function run(): Promise<void> {
   }
 
   const server = await startGateway();
-  console.log('Rubo gateway running. Press Ctrl+C to stop.');
+  console.log('RUBEN gateway running. Press Ctrl+C to stop.');
 
   const shutdown = async () => {
     await server.stop();

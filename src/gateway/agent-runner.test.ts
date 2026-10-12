@@ -4,7 +4,7 @@ import { InMemoryChatHistory } from '../utils/in-memory-chat-history.js';
 import { enqueueForSession, runAgentForMessage } from './agent-runner.js';
 
 /**
- * Messages sent while Rubo is still answering: merged into the running turn when
+ * Messages sent while RUBEN is still answering: merged into the running turn when
  * the agent drains its queue, or answered in a follow-up turn when they arrive
  * after the last drain. Every answer must reach the owner and the saved session.
  */

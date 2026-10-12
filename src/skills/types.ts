@@ -1,7 +1,7 @@
 /**
  * Source of a skill definition.
- * - builtin: Shipped with Rubo (src/skills/builtin/)
- * - project: Project-level skills (.rubo/skills/)
+ * - builtin: Shipped with RUBEN (src/skills/builtin/)
+ * - project: Project-level skills (.ruben/skills/)
  */
 export type SkillSource = 'builtin' | 'user' | 'project';
 

@@ -304,6 +304,8 @@ export interface DoneEvent {
   tokensPerSecond?: number;
   /** Reasoning produced for this turn, when the model is a thinking model. */
   reasoning?: string;
+  /** True when `answer` is an error message rather than an answer, so a caller can tell. */
+  failed?: boolean;
 }
 
 /**

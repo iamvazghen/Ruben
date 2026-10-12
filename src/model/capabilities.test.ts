@@ -9,7 +9,14 @@ import {
 describe('model capabilities', () => {
   beforeEach(() => _resetObservedForTest());
 
-  test('the configured default is recognised as a thinking model', () => {
+  test('the configured default reasons behind an API field', () => {
+    // MiniMax M3.1 Flash returns reasoning_content beside a clean content.
+    const caps = getModelCapabilities('minimax:MiniMax-M3.1-Flash-Preview');
+    expect(caps.reasoning).toBe(true);
+    expect(caps.reasoningStyle).toBe('api-field');
+  });
+
+  test('MiniMax M2.x is recognised as an inline thinking model', () => {
     // MiniMax M2.5 emits <think> inline, which is why reasoning leaked into
     // replies before this existed.
     const caps = getModelCapabilities('minimax:MiniMax-M2.5');

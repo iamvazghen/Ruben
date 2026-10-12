@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { dirname } from 'node:path';
 import { yahoo, type IsinMatch, type MarketData } from '../market/yahoo.js';
 import { PortfolioStore, type Position } from '../tools/portfolio/store.js';
-import { ruboPath } from '../utils/paths.js';
+import { rubenPath } from '../utils/paths.js';
 import { parseBrokerExport, type ImportedHolding } from './parse.js';
 
 /**
@@ -27,7 +27,7 @@ export interface ImportPreview {
   created_at: string;
 }
 
-const pendingPath = () => ruboPath('import', 'pending.json');
+const pendingPath = () => rubenPath('import', 'pending.json');
 
 const PREFERRED_EXCHANGES: Record<string, string[]> = {
   EUR: ['GER', 'FRA', 'AMS', 'PAR', 'MIL', 'STU', 'MUN'],

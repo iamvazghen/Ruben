@@ -6,7 +6,7 @@
  * 3. Reuse `resolveRoute()` + `runAgentForMessage()` without changing gateway orchestration.
  * 4. Register the plugin in gateway bootstrap next to Telegram.
  *
- * This keeps Layer 1 channel transport isolated from Rubo agent execution.
+ * This keeps Layer 1 channel transport isolated from RUBEN agent execution.
  */
 export const GATEWAY_EXTENSION_POINTS = [
   'ChannelPlugin lifecycle (start/stop/status)',

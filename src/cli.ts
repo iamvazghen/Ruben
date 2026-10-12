@@ -1,5 +1,5 @@
 import { Container, Spacer, Text, TUI } from '@mariozechner/pi-tui';
-import { RuboTerminal } from './terminal.js';
+import { RubenTerminal } from './terminal.js';
 import { FINANCE_COMMANDS, runFinanceCommand } from './commands/finance.js';
 import { autoSync } from './utils/vps-sync.js';
 import { cacheLines, costLines, historyLines, providersLines, rulesLines, thinkingLines, watchlistLines } from './commands/info.js';
@@ -239,7 +239,7 @@ export async function runCli(argv: string[] = process.argv.slice(2)) {
   const resumeRequest = parseResumeArg(argv);
   // Apply the saved color theme before the first render.
   setActiveTheme(getSetting<ThemeName>('theme', 'emerald'));
-  const tui = new TUI(new RuboTerminal());
+  const tui = new TUI(new RubenTerminal());
   const root = new Container();
   const chatLog = new ChatLogComponent(tui);
   const inputHistory = new InputHistoryController(() => tui.requestRender());
@@ -418,8 +418,8 @@ export async function runCli(argv: string[] = process.argv.slice(2)) {
   const editor = new CustomEditor(tui, editorTheme);
   const hintBar = new HintBarComponent();
   // Debug panel is a developer aid (raw log lines under the input). Hidden by
-  // default so end users see a single clean input; enable with RUBO_DEBUG=1.
-  const debugPanel = new DebugPanelComponent(8, !!process.env.RUBO_DEBUG);
+  // default so end users see a single clean input; enable with RUBEN_DEBUG=1.
+  const debugPanel = new DebugPanelComponent(8, !!process.env.RUBEN_DEBUG);
   const spacer = new Spacer(1);
 
   // Elite TUI additions
@@ -685,7 +685,7 @@ export async function runCli(argv: string[] = process.argv.slice(2)) {
         await agentRunner.runQuery('Show me what you know about me from memory. Use memory_search and memory_get.');
         break;
       case 'heartbeat':
-        await agentRunner.runQuery('Show me my current heartbeat checklist from .rubo/HEARTBEAT.md');
+        await agentRunner.runQuery('Show me my current heartbeat checklist from .ruben/HEARTBEAT.md');
         break;
       case 'history':
         print(historyLines(modelSelection.inMemoryChatHistory.getMessages()));
@@ -1303,7 +1303,7 @@ export async function runCli(argv: string[] = process.argv.slice(2)) {
       );
       showScreenView(
         'Select web search provider',
-        'Rubo tries your preferred provider first and falls back to the others.',
+        'RUBEN tries your preferred provider first and falls back to the others.',
         selector,
         'Enter to confirm · esc to exit',
         selector,
@@ -1435,12 +1435,12 @@ export async function runCli(argv: string[] = process.argv.slice(2)) {
     editor.addToHistoryWithTruncation(msg);
   }
 
-  // With RUBO_VPS set, bring the server's sessions and holdings down first, so
+  // With RUBEN_VPS set, bring the server's sessions and holdings down first, so
   // Telegram conversations can be resumed here; otherwise sync in the background.
   if (resumeRequest.resume) showSync(await autoSync('pull'));
   else void autoSync('both').then(showSync);
 
-  // Resume a prior session at startup if requested via `rubo --resume [id]`.
+  // Resume a prior session at startup if requested via `ruben --resume [id]`.
   if (resumeRequest.resume) {
     const target = resumeRequest.id ? await loadSession(resumeRequest.id) : await latestSession();
     if (target && target.turns.length > 0) {
@@ -1468,7 +1468,7 @@ export async function runCli(argv: string[] = process.argv.slice(2)) {
   // pi-tui's first paint deliberately does NOT clear the screen ("assumes clean
   // screen"), and it leaves its UI on the terminal when a previous run exits.
   // That stranded a stale, empty input box above the welcome banner whenever
-  // Rubo was relaunched in a dirty terminal. Force one clean full redraw
+  // RUBEN was relaunched in a dirty terminal. Force one clean full redraw
   // (clears scrollback + screen) so we always start pristine and never duplicate
   // the input box.
   tui.requestRender(true);

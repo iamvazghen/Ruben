@@ -1,7 +1,7 @@
 {
-  "name": "rubo-ts",
+  "name": "ruben-ts",
   "version": "1.1.0",
-  "description": "Rubo - self-hosted financial research agent with deterministic 0-100 investment grading on two horizons.",
+  "description": "RUBEN - self-hosted financial research agent with deterministic 0-100 investment grading on two horizons.",
   "license": "MIT",
   "author": "iamvazghen",
   "repository": { "type": "git", "url": "git+https://github.com/iamvazghen/rubo.git" },
@@ -12,7 +12,7 @@
   "type": "module",
   "main": "src/index.tsx",
   "bin": {
-    "rubo": "./src/index.tsx"
+    "ruben": "./src/index.tsx"
   },
   "scripts": {
     "start": "node --import tsx src/index.tsx",

@@ -17,7 +17,7 @@ export function fixClearOrder(data: string): string {
   return data.includes(PI_TUI_CLEAR) ? data.split(PI_TUI_CLEAR).join(CLEAR_THEN_WIPE) : data;
 }
 
-export class RuboTerminal extends ProcessTerminal {
+export class RubenTerminal extends ProcessTerminal {
   override write(data: string): void {
     super.write(fixClearOrder(data));
   }

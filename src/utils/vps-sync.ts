@@ -1,33 +1,33 @@
 import { spawn } from 'node:child_process';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { ruboPath } from './paths.js';
+import { rubenPath } from './paths.js';
 
 /**
  * Keeps the CLI and the server (which runs Telegram and the reminders) looking
- * at the same sessions, holdings and income settings, without `rubo pull/push`.
+ * at the same sessions, holdings and income settings, without `ruben pull/push`.
  *
- * Only when `RUBO_VPS=user@host` is set (and `RUBO_AUTOSYNC` is not `0`). Per
+ * Only when `RUBEN_VPS=user@host` is set (and `RUBEN_AUTOSYNC` is not `0`). Per
  * file, the newer copy wins; tar carries modification times across so the
  * comparison stays meaningful. Two sides editing the same session are merged by
  * SessionStore.appendTurn, not here. Everything else (memory, scores) stays
- * with the manual `rubo pull` / `rubo push`.
+ * with the manual `ruben pull` / `ruben push`.
  */
 
-/** Paths under RUBO_HOME that follow the owner between machines. */
+/** Paths under RUBEN_HOME that follow the owner between machines. */
 const SYNCED = [/^sessions\/[^/]+_[^/]+\.json$/, /^portfolio\.json$/, /^income\/[^/]+\.json$/, /^rebalance\/[^/]+\.json$/];
 const DIRS = ['sessions', 'income', 'rebalance'];
 
 export function autoSyncTarget(): { host: string; home: string } | null {
-  const host = process.env.RUBO_VPS?.trim();
-  if (!host || process.env.RUBO_AUTOSYNC === '0') return null;
-  return { host, home: process.env.RUBO_VPS_HOME?.trim() || '~/.rubo' };
+  const host = process.env.RUBEN_VPS?.trim();
+  if (!host || process.env.RUBEN_AUTOSYNC === '0') return null;
+  return { host, home: process.env.RUBEN_VPS_HOME?.trim() || '~/.ruben' };
 }
 
 /** Relative path → mtime in whole seconds. */
 export type Listing = Map<string, number>;
 
-export function localListing(root = ruboPath()): Listing {
+export function localListing(root = rubenPath()): Listing {
   const out: Listing = new Map();
   const add = (rel: string) => {
     if (SYNCED.some((r) => r.test(rel))) out.set(rel, Math.floor(statSync(join(root, rel)).mtimeMs / 1000));
@@ -79,7 +79,7 @@ async function remoteListing(host: string, home: string): Promise<Listing> {
 }
 
 async function transfer(direction: 'pull' | 'push', files: string[], host: string, home: string): Promise<void> {
-  const root = ruboPath();
+  const root = rubenPath();
   const quoted = files.map((f) => `'${f}'`).join(' ');
   if (direction === 'pull') {
     const src = run('ssh', [...SSH, host, `cd ${home} && tar cf - ${quoted}`]);

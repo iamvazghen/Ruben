@@ -4,19 +4,19 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 /**
- * State goes to a scratch RUBO_HOME. The store modules resolve their directory
+ * State goes to a scratch RUBEN_HOME. The store modules resolve their directory
  * per call (see utils/paths.ts), and the imports are dynamic so nothing can have
  * captured the real home before the override.
  */
 let home: string;
 beforeEach(() => {
-  home = mkdtempSync(join(tmpdir(), 'rubo-conv-'));
-  process.env.RUBO_HOME = home;
-  process.env.RUBO_TIMEZONE = 'Europe/Berlin';
+  home = mkdtempSync(join(tmpdir(), 'ruben-conv-'));
+  process.env.RUBEN_HOME = home;
+  process.env.RUBEN_TIMEZONE = 'Europe/Berlin';
 });
 afterEach(() => {
-  delete process.env.RUBO_HOME;
-  delete process.env.RUBO_TIMEZONE;
+  delete process.env.RUBEN_HOME;
+  delete process.env.RUBEN_TIMEZONE;
   rmSync(home, { recursive: true, force: true });
 });
 
@@ -113,7 +113,7 @@ describe('telegram conversations', () => {
     expect(reply).toContain('New session telegram:');
     expect(ctx().activeSessionId).not.toBe(one.id);
 
-    const listing = await m.handleSessionCommand('/sessions@RuboBot', ctx());
+    const listing = await m.handleSessionCommand('/sessions@RubenBot', ctx());
     expect(listing).toContain(one.id);
     expect(listing).toContain(cli.id);
 

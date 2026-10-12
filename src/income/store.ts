@@ -2,16 +2,16 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import type { MarketData } from '../market/yahoo.js';
 import { baseCurrency } from '../utils/locale.js';
-import { ruboPath } from '../utils/paths.js';
+import { rubenPath } from '../utils/paths.js';
 import { defaultAccountTax } from './brokers.js';
 import { jurisdictionFor } from './jurisdictions.js';
 import { DEFAULT_YIELD_PLAN, type Allocation, type YieldPlan } from './plan.js';
 import { EMPTY_TAX_PROFILE, type TaxBreakdown, type TaxProfile } from './tax.js';
 
 /**
- * Income state under `.rubo/income/`: the owner's plan and tax profile, the
+ * Income state under `.ruben/income/`: the owner's plan and tax profile, the
  * calendar of expected payments, and a ledger of confirmed ones. Amounts are in
- * the base currency. Paths are resolved per call so a RUBO_HOME set after
+ * the base currency. Paths are resolved per call so a RUBEN_HOME set after
  * import is honoured.
  */
 
@@ -64,7 +64,7 @@ export interface Ledger {
   reserve_moves?: { at: string; amount: number; note: string }[];
 }
 
-const file = (name: string) => ruboPath('income', name);
+const file = (name: string) => rubenPath('income', name);
 
 function readJson<T>(name: string, fallback: T): T {
   const path = file(name);

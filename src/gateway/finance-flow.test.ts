@@ -29,9 +29,9 @@ const fake: Partial<MarketData> = {
 };
 
 beforeAll(async () => {
-  home = mkdtempSync(join(tmpdir(), 'rubo-tg-'));
-  process.env.RUBO_HOME = home;
-  process.env.RUBO_TIMEZONE = 'America/New_York';
+  home = mkdtempSync(join(tmpdir(), 'ruben-tg-'));
+  process.env.RUBEN_HOME = home;
+  process.env.RUBEN_TIMEZONE = 'America/New_York';
   process.env.TELEGRAM_BOT_TOKEN = 'test-token';
   process.env.TYPESAFE_API_KEY = '';
   globalThis.fetch = (async (url: string, init?: RequestInit) => {
@@ -46,7 +46,7 @@ beforeAll(async () => {
 afterAll(() => {
   globalThis.fetch = realFetch;
   Object.assign(yahoo, saved);
-  for (const k of ['RUBO_HOME', 'RUBO_TIMEZONE', 'TELEGRAM_BOT_TOKEN']) delete process.env[k];
+  for (const k of ['RUBEN_HOME', 'RUBEN_TIMEZONE', 'TELEGRAM_BOT_TOKEN']) delete process.env[k];
   rmSync(home, { recursive: true, force: true });
 });
 
@@ -80,7 +80,7 @@ describe('Telegram: import, configure, get reminded', () => {
   });
 
   test('/setup and /tax are answered by code, with the bot-name suffix Telegram adds', async () => {
-    expect(await say('/setup@rubo_bot')).toContain('Time zone: America/New_York');
+    expect(await say('/setup@ruben_bot')).toContain('Time zone: America/New_York');
     expect(await say('/tax set residence US')).toContain('Tax residence: US');
     expect(await say('/income refresh')).toContain('KO:2026-09-15');
   });

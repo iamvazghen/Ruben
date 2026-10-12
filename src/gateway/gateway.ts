@@ -14,12 +14,12 @@ import { runAgentForMessage, isSessionRunning, enqueueForSession } from './agent
 import { startCronRunner } from '../cron/runner.js';
 import { ensureHeartbeatCronJob } from '../cron/heartbeat-migration.js';
 import { appendFileSync } from 'node:fs';
-import { ruboPath } from '../utils/paths.js';
+import { rubenPath } from '../utils/paths.js';
 import { getSetting } from '../utils/config.js';
 import type { GroupContext } from '../agent/types.js';
 
-// ponytail: lazy so $RUBO_HOME set after module load still counts.
-const LOG_PATH = () => ruboPath('gateway-debug.log');
+// ponytail: lazy so $RUBEN_HOME set after module load still counts.
+const LOG_PATH = () => rubenPath('gateway-debug.log');
 function debugLog(msg: string) {
   appendFileSync(LOG_PATH(), `${new Date().toISOString()} ${msg}\n`);
 }
@@ -155,7 +155,7 @@ export async function handleTelegramInbound(
       channel: 'telegram',
       groupContext,
       // Each answer goes out and into the saved session as it completes, including
-      // follow-ups for messages sent while Rubo was still working.
+      // follow-ups for messages sent while RUBEN was still working.
       onTurn: async (turn) => {
         if (!turn.answer.trim()) return;
         await conversation.appendTurn(turn.query, turn.answer.trim());

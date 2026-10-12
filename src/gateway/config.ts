@@ -1,10 +1,10 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { z } from 'zod';
-import { ruboPath } from '../utils/paths.js';
+import { rubenPath } from '../utils/paths.js';
 
-// ponytail: lazy so $RUBO_HOME set after module load still counts.
-const DEFAULT_GATEWAY_PATH = () => ruboPath('gateway.json');
+// ponytail: lazy so $RUBEN_HOME set after module load still counts.
+const DEFAULT_GATEWAY_PATH = () => rubenPath('gateway.json');
 const GroupPolicySchema = z.enum(['open', 'allowlist', 'disabled']);
 const ReconnectSchema = z.object({
   initialMs: z.number().optional(),
@@ -130,7 +130,7 @@ export type TelegramAccountConfig = {
 };
 
 export function getGatewayConfigPath(overridePath?: string): string {
-  return overridePath ?? process.env.RUBO_GATEWAY_CONFIG ?? DEFAULT_GATEWAY_PATH();
+  return overridePath ?? process.env.RUBEN_GATEWAY_CONFIG ?? DEFAULT_GATEWAY_PATH();
 }
 
 export function loadGatewayConfig(overridePath?: string): GatewayConfig {

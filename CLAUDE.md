@@ -10,11 +10,11 @@ Rules:
 
 ## Persistent memory (Obsidian vault)
 
-Durable project memory: `C:\Users\iamva\Documents\Obsidian Vault\30-Projects\Active\rubo.md`.
+Durable project memory: `C:\Users\iamva\Documents\Obsidian Vault\30-Projects\Active\ruben.md`.
 
 Context order: graphify query → vault note → raw source. Never grep to orient.
 `/resume` to load state, `/save` to write it back.
 
 The local vault is a read-only replica. Vault edits must be pushed to the VPS
-(`openclaw@100.107.141.83:/home/openclaw/.openclaw/obsidian-vault`) or the next sync
+(`openclaw@100.107.141.83:/home/openclaw/vault`) or the next sync
 deletes them.

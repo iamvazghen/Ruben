@@ -1,7 +1,7 @@
 /**
  * Separate a model's inline reasoning from its answer.
  *
- * MiniMax M2.5 — the configured default — emits its chain of thought inline as
+ * MiniMax M2.5 — the default until 2026-10-12 — emits its chain of thought inline as
  * `<think>...</think>` in the message content rather than as a separate
  * reasoning field. Nothing handled it, so a Telegram reply opened with
  * "The user wants me to report the MSFT grading results. Let me extract..."

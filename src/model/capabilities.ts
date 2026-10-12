@@ -46,6 +46,8 @@ const RULES: Rule[] = [
   { match: /magistral/i, style: 'inline-tags' },
 
   // Reasoning kept behind an API field — announce it, but the text may be hidden.
+  // MiniMax M3.x returns `reasoning_content` beside a clean `content` (probed 2026-10-12).
+  { match: /minimax[-/]?m3/i, style: 'api-field' },
   { match: /^(o1|o3|o4)(-|$)/i, style: 'api-field' },
   { match: /gpt-5/i, style: 'api-field' },
   { match: /claude.*(thinking|reasoning)/i, style: 'api-field' },

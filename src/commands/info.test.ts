@@ -9,8 +9,8 @@ import { cacheLines, costLines, historyLines, providersLines, rulesLines, thinki
 const plain = (lines: string[]) => lines.map((l) => l.replace(/\x1b\[[0-9;]*m/g, ''));
 
 let home: string;
-beforeEach(() => { home = mkdtempSync(join(tmpdir(), 'rubo-info-')); process.env.RUBO_HOME = home; });
-afterEach(() => { delete process.env.RUBO_HOME; rmSync(home, { recursive: true, force: true }); });
+beforeEach(() => { home = mkdtempSync(join(tmpdir(), 'ruben-info-')); process.env.RUBEN_HOME = home; });
+afterEach(() => { delete process.env.RUBEN_HOME; rmSync(home, { recursive: true, force: true }); });
 
 describe('report-only CLI commands', () => {
   test('/rules: the rules file, or how to start one', async () => {

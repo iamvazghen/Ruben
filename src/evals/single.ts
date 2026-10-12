@@ -4,7 +4,7 @@ import 'dotenv/config';
 import { Agent } from '../agent/agent.js';
 
 const query = process.argv[2] ?? "What is the current price of Apple stock?";
-const model = 'minimax:MiniMax-M2.5';
+const model = 'minimax:MiniMax-M3.1-Flash-Preview';
 
 console.log('Model:', model);
 console.log('Query:', query);

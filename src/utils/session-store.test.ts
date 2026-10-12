@@ -4,8 +4,8 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 let home: string;
-beforeEach(() => { home = mkdtempSync(join(tmpdir(), 'rubo-sess-')); process.env.RUBO_HOME = home; });
-afterEach(() => { delete process.env.RUBO_HOME; rmSync(home, { recursive: true, force: true }); });
+beforeEach(() => { home = mkdtempSync(join(tmpdir(), 'ruben-sess-')); process.env.RUBEN_HOME = home; });
+afterEach(() => { delete process.env.RUBEN_HOME; rmSync(home, { recursive: true, force: true }); });
 
 test('a session continued on both surfaces keeps every turn, in order', async () => {
   const { SessionStore, loadSession } = await import('./session-store.js');

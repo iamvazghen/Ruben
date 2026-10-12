@@ -25,8 +25,8 @@ import { join } from 'node:path';
  * Memory is copied in rather than left empty, because what the agent recalls
  * changes which tools it reaches for - that is part of what is under test.
  */
-const SCRATCH_HOME = mkdtempSync(join(tmpdir(), 'rubo-behavioral-'));
-const REAL_HOME = process.env.RUBO_HOME?.trim() || (existsSync('.rubo') ? '.rubo' : '');
+const SCRATCH_HOME = mkdtempSync(join(tmpdir(), 'ruben-behavioral-'));
+const REAL_HOME = process.env.RUBEN_HOME?.trim() || (existsSync('.ruben') ? '.ruben' : '');
 mkdirSync(join(SCRATCH_HOME, 'memory'), { recursive: true });
 if (REAL_HOME) {
   for (const f of ['MEMORY.md']) {
@@ -34,7 +34,7 @@ if (REAL_HOME) {
     if (existsSync(src)) copyFileSync(src, join(SCRATCH_HOME, 'memory', f));
   }
 }
-process.env.RUBO_HOME = SCRATCH_HOME;
+process.env.RUBEN_HOME = SCRATCH_HOME;
 
 // Dynamic, and deliberately so: `import` statements are hoisted and run before
 // any top-level code, so a static import here would load the agent - and every
@@ -60,7 +60,7 @@ interface TestCase {
   expectAnyOf?: string[];
 }
 
-const DEFAULT_MODEL = 'minimax:MiniMax-M2.5';
+const DEFAULT_MODEL = 'minimax:MiniMax-M3.1-Flash-Preview';
 
 const TEST_CASES: TestCase[] = [
   // 1. Simple US equity snapshot
@@ -215,7 +215,7 @@ async function staticFacts(): Promise<void> {
 }
 
 async function main(): Promise<void> {
-  console.log('Rubo — end-to-end behavioral test');
+  console.log('RUBEN — end-to-end behavioral test');
   console.log('═'.repeat(80));
   await staticFacts();
 

@@ -16,11 +16,11 @@ import { classifyError, isNonRetryableError } from '@/utils/errors';
 import { resolveProvider, getProviderById } from '@/providers';
 
 // minimax is the default: the user provided a custom OpenAI-compatible key for a
-// proxy that fronts minimax m2.5. Set MINIMAX_BASE_URL in .env to point at the
+// proxy that fronts minimax (M3.1 Flash Preview since 2026-10-12). Set MINIMAX_BASE_URL in .env to point at the
 // proxy; if unset, the placeholder baseUrlDefault is used (which will fail until
 // configured — model-selection.ts guides the user to set it).
 export const DEFAULT_PROVIDER = 'minimax';
-export const DEFAULT_MODEL = 'minimax:MiniMax-M2.5';
+export const DEFAULT_MODEL = 'minimax:MiniMax-M3.1-Flash-Preview';
 
 /**
  * Gets the fast model variant for the given provider.

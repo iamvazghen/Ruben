@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import type { MarketData } from '../market/yahoo.js';
 import { PortfolioStore } from '../tools/portfolio/store.js';
-import { ruboPath } from '../utils/paths.js';
+import { rubenPath } from '../utils/paths.js';
 
 /**
  * Scores Jev's judgements against what happened, like the grade ledger.
@@ -23,7 +23,7 @@ export interface Judgement {
   answers: Record<string, { noul?: number; choice?: string }>;
 }
 
-export function readJudgements(path = ruboPath('judgements.jsonl')): Judgement[] {
+export function readJudgements(path = rubenPath('judgements.jsonl')): Judgement[] {
   if (!existsSync(path)) return [];
   return readFileSync(path, 'utf8').split('\n').flatMap((line) => {
     try { return line.trim() ? [JSON.parse(line) as Judgement] : []; } catch { return []; }
@@ -84,7 +84,7 @@ export async function scoreJudgements(market: MarketData, now = Date.now(), judg
 
 export function describeScores(r: ScoreReport): string {
   const total = Object.values(r.counts).reduce((s, v) => s + v, 0);
-  if (total === 0) return 'No Jev judgements yet. They are logged as Rubo uses dividend_safety, thesis_check, news_materiality and run_debate.';
+  if (total === 0) return 'No Jev judgements yet. They are logged as RUBEN uses dividend_safety, thesis_check, news_materiality and run_debate.';
   const lines = [`Jev judgements logged: ${total} (${Object.entries(r.counts).map(([k, v]) => `${k} ${v}`).join(', ')})`];
   if (r.brier == null) {
     lines.push(`Dividend-cut calls resolve a year after they are made; none has yet (${r.pending} waiting).`);

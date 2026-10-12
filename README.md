@@ -1,6 +1,6 @@
-# Rubo
+# RUBEN
 
-**Rubo** is a self-hosted financial-research agent. It lives in your terminal and your Telegram, and it does the work of a junior analyst: pulling live data across **84 tools**, citing every claim, running a multi-agent debate on high-conviction trades, and remembering your portfolio between sessions.
+**RUBEN** is a self-hosted financial-research agent. It lives in your terminal and your Telegram, and it does the work of a junior analyst: pulling live data across **84 tools**, citing every claim, running a multi-agent debate on high-conviction trades, and remembering your portfolio between sessions.
 
 What separates it from a chatbot with a stock API is the **grading engine**: every company gets a deterministic **0-100 score on two horizons** — 1-3 years and 20+ years — computed in code from a fixed factor set, so the same inputs give the same number in March and in September. Grades are written to a ledger with the price at the time, which turns a stream of opinions into a track record you can check.
 
@@ -37,14 +37,14 @@ Ships configured for **MiniMax M2.5**, and wired to 10 LLM providers (OpenAI · 
 
 ## What it does
 
-Rubo takes a question like *"is NVDA cheap relative to peers given the AI capex cycle?"* and runs an end-to-end research workflow:
+RUBEN takes a question like *"is NVDA cheap relative to peers given the AI capex cycle?"* and runs an end-to-end research workflow:
 
 1. **Plans** — picks the right tools (equity quotes? financials? news? filings?) and issues them in parallel where independent.
 2. **Sources** — pulls from **84 financial tools** covering US equities, global equities across ~66 exchanges, crypto, FX, commodities, macro (FRED, World Bank, ECB, BIS), real estate, SEC filings, news from 4 providers, and on-chain crypto.
 3. **Cross-checks** — when providers disagree, it surfaces both. Every data point carries a freshness stamp (`Polygon · 14:32 UTC`) and a numbered citation.
 4. **Argues** — for any high-conviction trade it spawns a 4-specialist debate (bull / bear / quant / macro) and a judge subagent that synthesizes a structured `Decision · Conviction · Time horizon`.
 5. **Grades** — scores the company 0-100 on both a 1-3 year and a 20+ year horizon from a fixed, weighted factor set, and records the grade so later runs report what *changed*.
-6. **Remembers** — your portfolio, risk tolerance, prior trades, and stated rules live in `.rubo/` and are auto-injected into every system prompt.
+6. **Remembers** — your portfolio, risk tolerance, prior trades, and stated rules live in `.ruben/` and are auto-injected into every system prompt.
 
 The output is **opinionated, source-cited, falsifiable** — it leads with the answer, attaches citations to every claim, and includes bear-case risks for any recommendation. The agent is **explicitly permitted to disagree with the user's priors** and to call out weak theses.
 
@@ -103,7 +103,7 @@ investment_report { horizon: "long", top_n: 10 }
 score_history { action: "calibration", horizon: "long" }
 ```
 
-Grades append to `<rubo>/scores/<TICKER>.jsonl` with the price at grade time.
+Grades append to `<ruben>/scores/<TICKER>.jsonl` with the price at grade time.
 That ledger is what makes the periodic review a **diff** instead of a fresh
 opinion, and what lets `calibration` eventually say whether the scoring works.
 
@@ -117,7 +117,7 @@ and the result says so; one without a US line names the ADR to use instead.
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│ Rubo CLI/Telegram                                              │
+│ RUBEN CLI/Telegram                                              │
 │   • pi-tui terminal UI (themeable, source chips, watchlist,        │
 │     command palette, status bar, cost-cap overlay, diff viewer)    │
 │   • Slash commands (/model /theme /cost /watch /run_debate …)       │
@@ -250,7 +250,7 @@ When the user enables another channel, set `channel` in the `AgentConfig` — th
 
 ## Memory + portfolio
 
-Three persistent stores under `.rubo/`:
+Three persistent stores under `.ruben/`:
 
 | File | Format | Purpose |
 |---|---|---|
@@ -275,7 +275,7 @@ The **portfolio store** tracks thesis + conviction + target + stop per position;
 
 ```bash
 git clone https://github.com/iamvazghen/rubo.git
-cd rubo
+cd ruben
 bun install
 cp env.example .env
 $EDITOR .env   # fill in your keys
@@ -290,7 +290,7 @@ The first run will prompt for any missing keys.
 ```bash
 npm start                 # interactive CLI (Node)
 npm run dev               # watch mode for development
-rubo                      # same, from any folder, once scripts/bin is on PATH
+ruben                      # same, from any folder, once scripts/bin is on PATH
 ```
 
 The interactive CLI runs on Node, not Bun: Bun on Windows never reports a terminal resize, so the layout could not follow the window. Tests still run with `bun test`.
@@ -306,13 +306,13 @@ telegram:2026-09-28_18-40-03
 
 | Where | Command | What it does |
 |---|---|---|
-| CLI | `rubo --resume [id]` | Start by continuing a session (the latest if no id) |
+| CLI | `ruben --resume [id]` | Start by continuing a session (the latest if no id) |
 | CLI | `/sessions`, `/resume [id]` | Pick a session, or continue one by id |
 | CLI | `/new` (or `/clear`), `/session` | Start a new session, show the current one |
 | Telegram | `/sessions` | List saved sessions from both surfaces |
 | Telegram | `/resume <id>`, `/new`, `/session` | Continue one, start a new one, show the current one |
 
-Telegram sessions are saved on the machine that runs the gateway (your server), CLI sessions on your computer. With `RUBO_VPS=user@host` set, the CLI keeps both in step by itself: it syncs when it starts, before `/sessions` and `/resume`, and after every answer or finance command. Sessions, holdings, income plan, tax settings and targets take part; per file, the newer copy wins, and a session continued on both sides keeps the turns from both. Set `RUBO_AUTOSYNC=0` to turn it off. `rubo pull` / `rubo push` still copy everything by hand, including memory and scores.
+Telegram sessions are saved on the machine that runs the gateway (your server), CLI sessions on your computer. With `RUBEN_VPS=user@host` set, the CLI keeps both in step by itself: it syncs when it starts, before `/sessions` and `/resume`, and after every answer or finance command. Sessions, holdings, income plan, tax settings and targets take part; per file, the newer copy wins, and a session continued on both sides keeps the turns from both. Set `RUBEN_AUTOSYNC=0` to turn it off. `ruben pull` / `ruben push` still copy everything by hand, including memory and scores.
 
 ### Holdings, income and rebalancing
 
@@ -354,10 +354,10 @@ How it works:
 
   A domestic broker that withholds takes the tax at payment; otherwise it is due with your return and is set aside before your plan is applied. To add a country, add an entry to `jurisdictions.ts` with a test.
 - **Reminders.** A nightly job (06:30 your time, on the gateway) refreshes the calendar and schedules two Telegram messages per payment: before the ex-date, and on the pay date with your plan already worked out. The numbers are computed and sent verbatim, never generated.
-- **Rebalancing.** New cash and the reinvested part of income due in 30 days go to underweights first; only then are overweights sold, the cheapest in tax first within each bucket (losses, gains the account's remaining allowance covers, fund exemptions), with the tax on the gain and the broker's fees estimated (`/targets fee 1 0.1`: a fixed amount plus a percentage per trade; fees also reduce the taxable gain). Sales are taxed on the oldest purchases first (FIFO), as German brokers must, whenever the holding came from a transaction export that lists them; otherwise on the average cost, and the reply says which. Targets can be per holding, asset type, region or sector: regions and sectors of companies come from Yahoo's company profile, funds are tagged by you (`/targets tag VT region world`). A quarterly job alerts only when something leaves its band. Rubo never places trades.
+- **Rebalancing.** New cash and the reinvested part of income due in 30 days go to underweights first; only then are overweights sold, the cheapest in tax first within each bucket (losses, gains the account's remaining allowance covers, fund exemptions), with the tax on the gain and the broker's fees estimated (`/targets fee 1 0.1`: a fixed amount plus a percentage per trade; fees also reduce the taxable gain). Sales are taxed on the oldest purchases first (FIFO), as German brokers must, whenever the holding came from a transaction export that lists them; otherwise on the average cost, and the reply says which. Targets can be per holding, asset type, region or sector: regions and sectors of companies come from Yahoo's company profile, funds are tagged by you (`/targets tag VT region world`). A quarterly job alerts only when something leaves its band. RUBEN never places trades.
 - **Jev** (optional). Probabilities for questions that are judgement, not arithmetic: will this dividend be cut, does the thesis still hold, does this news matter. See [Jev judgement layer](#jev-judgement-layer).
 
-The gateway sends the reminders, so the server must know your holdings: import through Telegram, or import in the CLI (synced automatically with `RUBO_VPS` set, otherwise run `rubo push`). The launcher finds its checkout from its own location (or `RUBO_REPO`); `pull`, `push`, `vps` and `logs` need `RUBO_VPS=user@host`, and `RUBO_VPS_HOME` / `RUBO_VPS_UNIT` if your server does not use `~/.rubo` and `rubo-gateway`.
+The gateway sends the reminders, so the server must know your holdings: import through Telegram, or import in the CLI (synced automatically with `RUBEN_VPS` set, otherwise run `ruben push`). The launcher finds its checkout from its own location (or `RUBEN_REPO`); `pull`, `push`, `vps` and `logs` need `RUBEN_VPS=user@host`, and `RUBEN_VPS_HOME` / `RUBEN_VPS_UNIT` if your server does not use `~/.ruben` and `ruben-gateway`.
 
 The CLI launches a TUI with a banner, status bar (model · tokens · cost · iter · t/s), command palette (`Ctrl+P`), watchlist sidebar, and input area. Slash commands are auto-completed.
 
@@ -365,7 +365,7 @@ The CLI launches a TUI with a banner, status bar (model · tokens · cost · ite
 
 ## Jev judgement layer
 
-[Jev](https://typesafe.ai) (TypeSafe System One) answers typed questions about a piece of state with calibrated probabilities. Rubo uses it for the few questions that are judgement rather than arithmetic. It is optional: without `TYPESAFE_API_KEY` in `.env`, the three tools below are not offered to the model and reminders simply omit the cut risk. Everything else works the same.
+[Jev](https://typesafe.ai) (TypeSafe System One) answers typed questions about a piece of state with calibrated probabilities. RUBEN uses it for the few questions that are judgement rather than arithmetic. It is optional: without `TYPESAFE_API_KEY` in `.env`, the three tools below are not offered to the model and reminders simply omit the cut risk. Everything else works the same.
 
 **What Jev may and may not do.** Jev adds a probability next to a result. It never changes a grade, a tax figure, an allocation or any other computed amount, and it is never asked to predict a price. The model must present its answers as probabilities ("Jev puts the chance of a cut at 29 %"), not as facts.
 
@@ -378,10 +378,10 @@ Authorization: Bearer $TYPESAFE_API_KEY
 ```
 
 - `noul` returns the probability that a statement is true, `choice` picks one of named options (with a probability for each), `score` places the state on an ordered list of criteria.
-- `state` holds only facts Rubo already has (Yahoo fundamentals, your stored thesis, the evidence or news the model gathered). Jev reasons over that and nothing else.
+- `state` holds only facts RUBEN already has (Yahoo fundamentals, your stored thesis, the evidence or news the model gathered). Jev reasons over that and nothing else.
 - Answers are cached per question and subject (a day by default, a week for dividend safety), so a nightly refresh does not pay twice.
-- A failed call, a timeout (60 s) or a missing key returns nothing, and Rubo carries on without the judgement.
-- Every answer is appended to `.rubo/judgements.jsonl` with its date, model version and token usage, so judgements can later be scored against what happened, the same way grades are.
+- A failed call, a timeout (60 s) or a missing key returns nothing, and RUBEN carries on without the judgement.
+- Every answer is appended to `.ruben/judgements.jsonl` with its date, model version and token usage, so judgements can later be scored against what happened, the same way grades are.
 
 **Where it is used.**
 
@@ -415,7 +415,7 @@ A judgement is only as good as its state: a year with an unusually low free cash
 | `/theme` | Switch color theme (emerald · sapphire · amethyst · obsidian) |
 | `/rules` | Show research rules |
 | `/clear` | Clear the conversation |
-| `/memory` | Show what Rubo remembers about you |
+| `/memory` | Show what RUBEN remembers about you |
 | `/history` | Show recent conversation summaries |
 | `/sessions` / `/resume` | List / resume saved sessions |
 | `/palette` | Open the fuzzy command palette (also `Ctrl+P`) |
@@ -432,7 +432,7 @@ Keyboard shortcuts: `Esc` interrupt · `Ctrl+C` exit · `Ctrl+P` command palette
 
 ## Evaluate
 
-Rubo ships with a finance-specific eval suite (236 questions, LangSmith-backed):
+RUBEN ships with a finance-specific eval suite (236 questions, LangSmith-backed):
 
 ```bash
 bun run src/evals/run.ts            # full suite
@@ -445,12 +445,12 @@ The eval uses an LLM-as-judge to score correctness against ground-truth answers 
 
 ## Debug
 
-Every query creates a JSONL file in `.rubo/scratchpad/` with:
+Every query creates a JSONL file in `.ruben/scratchpad/` with:
 - The original query
 - Every tool call (args + raw result + LLM summary)
 - The agent's reasoning chain
 
-This makes it easy to inspect exactly what data the agent pulled and how it interpreted each result. Set `RUBO_DEBUG=1` to also surface a live log panel in the TUI.
+This makes it easy to inspect exactly what data the agent pulled and how it interpreted each result. Set `RUBEN_DEBUG=1` to also surface a live log panel in the TUI.
 
 ---
 
@@ -478,22 +478,22 @@ terminal.
 git clone https://github.com/iamvazghen/rubo.git ~/rubo && cd ~/rubo
 npm install
 cp env.example .env && $EDITOR .env       # keys
-mkdir -p ~/.rubo                        # state: memory, portfolio, scores, cron
+mkdir -p ~/.ruben                        # state: memory, portfolio, scores, cron
 ```
 
-`~/.config/systemd/user/rubo-gateway.service`:
+`~/.config/systemd/user/ruben-gateway.service`:
 
 ```ini
 [Unit]
-Description=Rubo gateway (Telegram + cron)
+Description=RUBEN gateway (Telegram + cron)
 After=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h/rubo
-Environment=RUBO_HOME=%h/.rubo
+WorkingDirectory=%h/ruben
+Environment=RUBEN_HOME=%h/.ruben
 Environment=NODE_OPTIONS=--max-old-space-size=1024
-EnvironmentFile=%h/rubo/.env
+EnvironmentFile=%h/ruben/.env
 ExecStart=/usr/bin/npx tsx src/gateway/index.ts run
 Restart=always
 RestartSec=10
@@ -504,44 +504,44 @@ WantedBy=default.target
 
 ```bash
 systemctl --user daemon-reload
-systemctl --user enable --now rubo-gateway
+systemctl --user enable --now ruben-gateway
 loginctl enable-linger $USER      # survive logout / reboot
-journalctl --user -u rubo-gateway -f
+journalctl --user -u ruben-gateway -f
 ```
 
-`RUBO_HOME` is what makes this safe: state resolves to one absolute
+`RUBEN_HOME` is what makes this safe: state resolves to one absolute
 directory regardless of the working directory the service starts in.
 
 ### A launcher on PATH
 
-Copy `scripts/bin/rubo` (bash) and `scripts/bin/rubo.cmd` (PowerShell/cmd)
-onto your `PATH` and set `RUBO_REPO` to the checkout. Both give the same
+Copy `scripts/bin/ruben` (bash) and `scripts/bin/ruben.cmd` (PowerShell/cmd)
+onto your `PATH` and set `RUBEN_REPO` to the checkout. Both give the same
 subcommands:
 
 ```
-rubo                 # interactive UI (needs a real terminal)
-rubo health          # provider health sweep
-rubo test            # test suite
-rubo gateway         # Telegram + cron locally
-rubo logs            # tail the VPS gateway log
-rubo vps restart     # control the VPS service
-rubo pull / push     # sync memory + score ledger with the VPS
+ruben                 # interactive UI (needs a real terminal)
+ruben health          # provider health sweep
+ruben test            # test suite
+ruben gateway         # Telegram + cron locally
+ruben logs            # tail the VPS gateway log
+ruben vps restart     # control the VPS service
+ruben pull / push     # sync memory + score ledger with the VPS
 ```
 
-Two files rather than one because PowerShell resolves a bare `rubo` to the
+Two files rather than one because PowerShell resolves a bare `ruben` to the
 `.cmd` through PATHEXT, while bash only matches an exact filename — without the
-extensionless twin, `rubo` is "command not found" in Git Bash.
+extensionless twin, `ruben` is "command not found" in Git Bash.
 
 ### The Windows shim, inline
 
-Drop `rubo.cmd` somewhere on `PATH`:
+Drop `ruben.cmd` somewhere on `PATH`:
 
 ```bat
 @echo off
 setlocal
-if not defined RUBO_REPO set "RUBO_REPO=C:\path\to\rubo"
-if not defined RUBO_HOME set "RUBO_HOME=%RUBO_REPO%\.rubo"
-pushd "%RUBO_REPO%"
+if not defined RUBEN_REPO set "RUBEN_REPO=C:\path\to\ruben"
+if not defined RUBEN_HOME set "RUBEN_HOME=%RUBEN_REPO%\.ruben"
+pushd "%RUBEN_REPO%"
 if /i "%~1"=="gateway" (shift & call bun run gateway & goto :done)
 if /i "%~1"=="health"  (call bun run health & goto :done)
 call node --import tsx src/index.tsx %*
@@ -554,9 +554,9 @@ exit /b %EXITCODE%
 Then from any directory:
 
 ```powershell
-rubo                 # interactive CLI
-rubo health          # provider health sweep
-rubo gateway         # Telegram + cron locally
+ruben                 # interactive CLI
+ruben health          # provider health sweep
+ruben gateway         # Telegram + cron locally
 ```
 
 ---
@@ -654,7 +654,7 @@ See `env.example` for the full list with keys. **Paid providers** (Bloomberg, Tr
 
 ## Third-party data attribution + licenses
 
-This project integrates with the following third-party data providers. Each provider retains its own terms of service; the data they return is owned by them, not by Rubo. Use of each provider is governed by their respective license/terms:
+This project integrates with the following third-party data providers. Each provider retains its own terms of service; the data they return is owned by them, not by RUBEN. Use of each provider is governed by their respective license/terms:
 
 | Provider | License / Terms |
 |---|---|
@@ -695,7 +695,7 @@ Open-source dependencies are listed in `package.json` with their respective lice
 
 ## License
 
-[MIT](LICENSE) © 2024–2026 Rubo contributors.
+[MIT](LICENSE) © 2024–2026 RUBEN contributors.
 
 You are free to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the software, subject to the MIT License terms. **Data returned by the third-party providers above is not covered by the MIT license** — it remains governed by each provider's own terms.
 

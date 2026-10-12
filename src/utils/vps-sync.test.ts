@@ -5,8 +5,8 @@ import { tmpdir } from 'node:os';
 import { autoSyncTarget, localListing, parseRemoteListing, plan } from './vps-sync.js';
 
 let home: string;
-beforeEach(() => { home = mkdtempSync(join(tmpdir(), 'rubo-sync-')); });
-afterEach(() => { rmSync(home, { recursive: true, force: true }); delete process.env.RUBO_VPS; delete process.env.RUBO_AUTOSYNC; });
+beforeEach(() => { home = mkdtempSync(join(tmpdir(), 'ruben-sync-')); });
+afterEach(() => { rmSync(home, { recursive: true, force: true }); delete process.env.RUBEN_VPS; delete process.env.RUBEN_AUTOSYNC; });
 
 describe('sync between the CLI and the server', () => {
   test('only sessions, holdings, income and rebalancing files take part', () => {
@@ -36,11 +36,11 @@ describe('sync between the CLI and the server', () => {
     expect(plan(local, remote)).toEqual({ pull: ['a.json', 'd.json'], push: ['c.json'] });
   });
 
-  test('off unless RUBO_VPS is set, and RUBO_AUTOSYNC=0 turns it off', () => {
+  test('off unless RUBEN_VPS is set, and RUBEN_AUTOSYNC=0 turns it off', () => {
     expect(autoSyncTarget()).toBeNull();
-    process.env.RUBO_VPS = 'me@server';
-    expect(autoSyncTarget()).toEqual({ host: 'me@server', home: process.env.RUBO_VPS_HOME?.trim() || '~/.rubo' });
-    process.env.RUBO_AUTOSYNC = '0';
+    process.env.RUBEN_VPS = 'me@server';
+    expect(autoSyncTarget()).toEqual({ host: 'me@server', home: process.env.RUBEN_VPS_HOME?.trim() || '~/.ruben' });
+    process.env.RUBEN_AUTOSYNC = '0';
     expect(autoSyncTarget()).toBeNull();
   });
 });

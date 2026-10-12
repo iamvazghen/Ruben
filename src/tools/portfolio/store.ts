@@ -1,6 +1,6 @@
 /**
  * Portfolio store. Tracks the user's holdings, price targets, conviction
- * levels, and trade journal. Persisted as JSON at `.rubo/portfolio.json`
+ * levels, and trade journal. Persisted as JSON at `.ruben/portfolio.json`
  * so the agent can read it as a single tool call (not a series of file reads).
  *
  * The portfolio is intentionally *separate* from the long-term memory file
@@ -12,7 +12,7 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
-import { getRuboDir } from '../../utils/paths.js';
+import { getRubenDir } from '../../utils/paths.js';
 
 const PORTFOLIO_FILENAME = 'portfolio.json';
 
@@ -125,8 +125,8 @@ export class PortfolioStore {
    * baseDir is resolved per access, not captured at construction.
    *
    * portfolio-tools.ts builds a single store at module load, so a default
-   * evaluated in the constructor froze whatever RUBO_HOME held at import
-   * time. ES imports are hoisted, so even a harness that sets RUBO_HOME at
+   * evaluated in the constructor froze whatever RUBEN_HOME held at import
+   * time. ES imports are hoisted, so even a harness that sets RUBEN_HOME at
    * the top of its file runs that assignment *after* this module has already
    * picked a directory - which is how the behavioural suite twice added a real
    * position to the real portfolio while believing it was writing to scratch.
@@ -134,7 +134,7 @@ export class PortfolioStore {
   constructor(private readonly baseDir?: string) {}
 
   private getPath(): string {
-    return join(this.baseDir ?? getRuboDir(), PORTFOLIO_FILENAME);
+    return join(this.baseDir ?? getRubenDir(), PORTFOLIO_FILENAME);
   }
 
   /** Read the full portfolio. Returns empty portfolio if file missing/corrupt. */

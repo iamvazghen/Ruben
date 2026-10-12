@@ -1,5 +1,5 @@
 /**
- * Tax on investment income and gains, for whoever runs Rubo.
+ * Tax on investment income and gains, for whoever runs RUBEN.
  *
  * Every figure is an estimate and is labelled as one. Amounts are in the
  * owner's base currency (`/setup currency`). What is modelled:

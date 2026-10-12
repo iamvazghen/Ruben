@@ -74,7 +74,7 @@ export const MAX_MARKDOWN_LENGTH = 100_000;
  * client distinctly from browser traffic.
  */
 export function getWebFetchUserAgent(): string {
-  return 'Rubo-User (rubo-ts; +https://github.com/)';
+  return 'RUBEN-User (ruben-ts; +https://github.com/)';
 }
 
 export function validateURL(url: string): boolean {

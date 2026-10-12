@@ -39,7 +39,7 @@ const turnsLabel = (n: number) => `${n} turn${n === 1 ? '' : 's'}`;
 /**
  * Session commands, answered by the gateway itself rather than the model.
  * Returns the reply text, or null when the message is not one of them.
- * In groups Telegram appends the bot name (`/new@RuboBot`); that is ignored.
+ * In groups Telegram appends the bot name (`/new@RubenBot`); that is ignored.
  */
 export async function handleSessionCommand(text: string, ctx: ConversationContext): Promise<string | null> {
   const match = /^\/(new|sessions|resume|session)(?:@\S+)?(?:\s+(.*))?$/s.exec(text.trim());

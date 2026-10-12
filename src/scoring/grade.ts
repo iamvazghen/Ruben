@@ -2,12 +2,12 @@
  * Composite grading and the score ledger.
  *
  * The ledger is the point. A grade that only ever appears in a chat reply is an
- * opinion; a grade appended to `<rubo>/scores/<TICKER>.jsonl` with the price
+ * opinion; a grade appended to `<ruben>/scores/<TICKER>.jsonl` with the price
  * at the time is a track record. Every later run can then say what changed and,
  * once enough time has passed, whether the high grades actually did better.
  */
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
-import { ruboPath } from '../utils/paths.js';
+import { rubenPath } from '../utils/paths.js';
 import { fetchBundle, latestPrice, type TickerBundle } from './data.js';
 import { FACTORS, type Horizon } from './factors.js';
 
@@ -123,7 +123,7 @@ export interface ScoreRecord {
 }
 
 function scoresDir(): string {
-  const dir = ruboPath('scores');
+  const dir = rubenPath('scores');
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
   return dir;
 }

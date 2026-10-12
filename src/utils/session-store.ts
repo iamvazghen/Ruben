@@ -1,7 +1,7 @@
 import { readFile, writeFile, mkdir, readdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { ruboPath } from './paths.js';
+import { rubenPath } from './paths.js';
 import { timeZone } from './locale.js';
 
 /** Where a session was started. Part of the id, so it is visible wherever the id is. */
@@ -18,7 +18,7 @@ export interface SessionTurn {
 
 /**
  * A persisted, resumable conversation thread, from the CLI or from Telegram.
- * One file per session in `.rubo/sessions/`. Either surface can resume a
+ * One file per session in `.ruben/sessions/`. Either surface can resume a
  * session the other one started, with full multi-turn context restored.
  *
  * Ids are `<origin>:<local date>_<time>`, e.g. `telegram:2026-09-28_14-05-12`:
@@ -49,7 +49,7 @@ export interface SessionSummary {
 const SESSIONS_DIR = 'sessions';
 
 function sessionsDir(): string {
-  return ruboPath(SESSIONS_DIR);
+  return rubenPath(SESSIONS_DIR);
 }
 
 /** Windows forbids ':' in file names, so the origin separator becomes '_' on disk. */

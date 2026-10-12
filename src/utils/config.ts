@@ -1,9 +1,9 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
-import { ruboPath } from './paths.js';
+import { rubenPath } from './paths.js';
 
-// ponytail: lazy so $RUBO_HOME set after module load still counts.
-const SETTINGS_FILE = () => ruboPath('settings.json');
+// ponytail: lazy so $RUBEN_HOME set after module load still counts.
+const SETTINGS_FILE = () => rubenPath('settings.json');
 
 // Map legacy model IDs to provider IDs for migration
 const MODEL_TO_PROVIDER_MAP: Record<string, string> = {

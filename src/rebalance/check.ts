@@ -8,10 +8,10 @@ import { allowanceLeft, basePerAllowanceUnit, incomeStore } from '../income/stor
 import { planFor } from '../income/plan.js';
 import { PortfolioStore, type Position } from '../tools/portfolio/store.js';
 import { baseCurrency, money, timeZone } from '../utils/locale.js';
-import { ruboPath } from '../utils/paths.js';
+import { rubenPath } from '../utils/paths.js';
 import { bucketOf, DEFAULT_TARGETS, proposeRebalance, type Proposal, type TargetMode, type Targets, type ValuedHolding } from './engine.js';
 
-const targetsPath = () => ruboPath('rebalance', 'targets.json');
+const targetsPath = () => rubenPath('rebalance', 'targets.json');
 
 export function loadTargets(): Targets {
   if (!existsSync(targetsPath())) return structuredClone(DEFAULT_TARGETS);
@@ -77,7 +77,7 @@ export function describeProposal(r: { proposal: Proposal; missing: string[]; inc
     lines.push(`${d.outside_band ? '!' : ' '} ${d.key.padEnd(14)} ${d.weight_pct.toFixed(1).padStart(5)} %${after} (target ${d.target_pct} %, ${d.drift_pct >= 0 ? '+' : ''}${d.drift_pct.toFixed(1)})`);
   }
   if (hasAfter) {
-    lines.push('', 'Suggested (Rubo does not trade):');
+    lines.push('', 'Suggested (RUBEN does not trade):');
     for (const t of p.trades) {
       const fee = t.est_fee ? ` · fee ${money(t.est_fee)}` : '';
       lines.push(t.side === 'sell'

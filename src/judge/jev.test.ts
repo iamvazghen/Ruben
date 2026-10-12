@@ -28,10 +28,10 @@ describe('Jev debate verdict', () => {
     const { mkdtempSync, rmSync, readFileSync } = await import('node:fs');
     const { join } = await import('node:path');
     const { tmpdir } = await import('node:os');
-    const home = mkdtempSync(join(tmpdir(), 'rubo-jev-'));
-    const saved = { key: process.env.TYPESAFE_API_KEY, home: process.env.RUBO_HOME, fetch: globalThis.fetch };
+    const home = mkdtempSync(join(tmpdir(), 'ruben-jev-'));
+    const saved = { key: process.env.TYPESAFE_API_KEY, home: process.env.RUBEN_HOME, fetch: globalThis.fetch };
     process.env.TYPESAFE_API_KEY = 'k';
-    process.env.RUBO_HOME = home;
+    process.env.RUBEN_HOME = home;
     let sent: any;
     globalThis.fetch = (async (_url: string, init: RequestInit) => {
       sent = JSON.parse(String(init.body));
@@ -53,7 +53,7 @@ describe('Jev debate verdict', () => {
     } finally {
       globalThis.fetch = saved.fetch;
       if (saved.key) process.env.TYPESAFE_API_KEY = saved.key; else process.env.TYPESAFE_API_KEY = '';
-      if (saved.home) process.env.RUBO_HOME = saved.home; else delete process.env.RUBO_HOME;
+      if (saved.home) process.env.RUBEN_HOME = saved.home; else delete process.env.RUBEN_HOME;
       rmSync(home, { recursive: true, force: true });
     }
   });
@@ -64,9 +64,9 @@ describe('monthly thesis check job', () => {
     const { mkdtempSync, rmSync } = await import('node:fs');
     const { join } = await import('node:path');
     const { tmpdir } = await import('node:os');
-    const home = mkdtempSync(join(tmpdir(), 'rubo-thesis-'));
-    const saved = { key: process.env.TYPESAFE_API_KEY, home: process.env.RUBO_HOME };
-    process.env.RUBO_HOME = home;
+    const home = mkdtempSync(join(tmpdir(), 'ruben-thesis-'));
+    const saved = { key: process.env.TYPESAFE_API_KEY, home: process.env.RUBEN_HOME };
+    process.env.RUBEN_HOME = home;
     try {
       const { ensureThesisCheckJob, THESIS_JOB, THESIS_JOB_MESSAGE } = await import('./jobs.js');
       const { loadCronStore } = await import('../cron/store.js');
@@ -88,7 +88,7 @@ describe('monthly thesis check job', () => {
       }
     } finally {
       if (saved.key) process.env.TYPESAFE_API_KEY = saved.key; else process.env.TYPESAFE_API_KEY = '';
-      if (saved.home) process.env.RUBO_HOME = saved.home; else delete process.env.RUBO_HOME;
+      if (saved.home) process.env.RUBEN_HOME = saved.home; else delete process.env.RUBEN_HOME;
       rmSync(home, { recursive: true, force: true });
     }
   });

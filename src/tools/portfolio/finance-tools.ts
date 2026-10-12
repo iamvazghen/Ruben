@@ -65,7 +65,7 @@ export const incomeConfirm = new DynamicStructuredTool({
 export const rebalanceProposal = new DynamicStructuredTool({
   name: 'rebalance_proposal',
   description:
-    'Drift of holdings from the target weights and the trades that would fix it (new cash first, then tax-aware sales). Suggestions only; Rubo never trades.',
+    'Drift of holdings from the target weights and the trades that would fix it (new cash first, then tax-aware sales). Suggestions only; RUBEN never trades.',
   schema: z.object({ new_cash: z.number().optional().describe('Cash the owner will add, in the base currency.') }),
   func: ({ new_cash }) => run('rebalance', new_cash ? `cash ${new_cash}` : ''),
 });

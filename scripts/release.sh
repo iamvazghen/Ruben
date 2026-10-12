@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Release script for Rubo
+# Release script for RUBEN
 # Usage: bash scripts/release.sh [version]
 # If no version is provided, bumps the patch segment of the current package.json version.
 
@@ -109,7 +109,7 @@ git push origin "$TAG"
 
 # Create GitHub release
 echo -e "$BODY" | gh release create "$TAG" \
-  --title "Rubo ${VERSION}" \
+  --title "RUBEN ${VERSION}" \
   --notes-file -
 
 echo ""

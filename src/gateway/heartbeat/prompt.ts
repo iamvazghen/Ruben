@@ -1,15 +1,15 @@
 import { readFile } from 'node:fs/promises';
 import { HEARTBEAT_OK_TOKEN } from './suppression.js';
-import { ruboPath } from '../../utils/paths.js';
+import { rubenPath } from '../../utils/paths.js';
 
-// ponytail: lazy so $RUBO_HOME set after module load still counts.
-const HEARTBEAT_MD_PATH = () => ruboPath('HEARTBEAT.md');
+// ponytail: lazy so $RUBEN_HOME set after module load still counts.
+const HEARTBEAT_MD_PATH = () => rubenPath('HEARTBEAT.md');
 
 const DEFAULT_CHECKLIST = `- Major index moves (S&P 500, NASDAQ, Dow) — alert if any move more than 2% in a session
 - Breaking financial news — major earnings surprises, Fed announcements, significant market events`;
 
 /**
- * Load .rubo/HEARTBEAT.md content.
+ * Load .ruben/HEARTBEAT.md content.
  * Returns the content string, or null if the file doesn't exist.
  */
 export async function loadHeartbeatDocument(): Promise<string | null> {

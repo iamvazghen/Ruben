@@ -1,6 +1,6 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { ruboPath } from '../utils/paths.js';
+import { rubenPath } from '../utils/paths.js';
 
 /**
  * Jev (TypeSafe System One): typed judgements with probabilities.
@@ -8,7 +8,7 @@ import { ruboPath } from '../utils/paths.js';
  * One choke point for every call, like callProvider for market data: key,
  * timeout, a same-day cache and a ledger. Jev is a judgement layer only - it
  * never changes a grade or a computed amount, and it is never asked to predict
- * a price. Every judgement is written to `.rubo/judgements.jsonl` with its date,
+ * a price. Every judgement is written to `.ruben/judgements.jsonl` with its date,
  * so it can later be scored against what happened, like the grade ledger.
  */
 
@@ -31,7 +31,7 @@ export function jevAvailable(): boolean {
   return Boolean(process.env.TYPESAFE_API_KEY?.trim());
 }
 
-const ledgerPath = () => ruboPath('judgements.jsonl');
+const ledgerPath = () => rubenPath('judgements.jsonl');
 
 function cached(kind: string, subject: string, maxAgeMs: number): Record<string, JevAnswer> | null {
   const path = ledgerPath();
