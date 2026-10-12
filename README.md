@@ -18,6 +18,7 @@ Ships configured for **MiniMax M3.1 Flash Preview**, and wired to 10 LLM provide
 - [Subagent system](#subagent-system)
 - [Channel profiles](#channel-profiles)
 - [Memory + portfolio](#memory--portfolio)
+- [Wealth management](#wealth-management)
 - [Prerequisites](#prerequisites)
 - [Install](#install)
 - [Run](#run)
@@ -215,6 +216,8 @@ Multi-step workflows invoked via the `skill` tool. Each is a `SKILL.md` with YAM
 | `macro-regime` | "what regime are we in" — goldilocks/reflation/stagflation/recession classification |
 | `write-memo` | "write a memo", "long writeup" — buyside-style HTML memo |
 | `x-research` | X/Twitter sentiment research |
+| `wealth-review` | "review my portfolio", "what do I do with my dividends", year-end tax planning — the whole position, ending in recommendations |
+| `property-research` | "what rent can I charge", "what is my flat worth", "should I refinance" — local market data recorded with date and source |
 
 ---
 
@@ -259,6 +262,31 @@ Three persistent stores under `.ruben/`:
 | `portfolio.json` | JSON | Open positions, closed history, journal, risk profile |
 
 The **portfolio store** tracks thesis + conviction + target + stop per position; closed positions record realized P&L + lesson. The system prompt auto-injects a compact portfolio summary so the agent always knows your book without spending a tool call.
+
+---
+
+## Wealth management
+
+R.U.B.E.N. manages a person's whole position, not just a stock list. Nothing is
+tied to one owner: base currency, tax residence, accounts and targets are
+settings, and every amount is converted to the base currency.
+
+| Need | Tools | What you get |
+|---|---|---|
+| **Whole picture** | `wealth_overview` | Net worth across securities, cash reserve and real estate equity; allocation by asset class; 12-month income against mortgage payments and `commitments`; concentration and liquidity flags |
+| **Portfolio management** | `portfolio_*`, `rebalance_targets`, `rebalance_proposal`, `fund_look_through` | Holdings by account and lot, drift from targets with tax-aware trades, ETF look-through (true underlying exposure, overlap, sector mix, annual fund cost) |
+| **Commitments** | `commitments` | Savings plans, loans, capital calls, insurance — what they take over the next 12 months |
+| **Dividends** | `income_forecast`, `income_calendar`, `yield_plan`, `reserve_balance` | Next 12 months by month and holding, net of withholding and residence tax; the plan's split (reinvest / reserve / withdraw / repurpose) and which underweight bucket the reinvested part should fill |
+| **Monitoring** | `portfolio_alerts`, daily `portfolio:watch` job, `news_materiality`, `thesis_check` | Every weekday evening: sharp falls, drawdowns, losses vs cost, stop/target hits, dividend cuts, then the news behind them. You hear only about what is bad, with a recommendation; silence otherwise |
+| **Analysis and forecast** | `grade_ticker`, `asset_forecast`, DCF/comps/DDM skills, `run_debate` | Deterministic 0-100 grades on two horizons; a statistical 1/3/5-year price range (P10/P50/P90) for any asset, with the uncertainty of its own drift |
+| **Tax** | `tax_profile`, `tax_year_summary` | Withholding and residence tax per payment; for a tax year: income, foreign tax, sales (shares separate), rental results, mapped to the German forms (Anlage KAP, KAP-INV, V); year-end planning (unused allowance, loss offsets). Prepares figures, does not file |
+| **Real estate** | `property_manage`, `property_review`, `mortgage_rates`, `housing_market`, `rentcast_*` | Apartments and houses with their mortgages: equity, LTV, gross/net yield, cash flow after debt service, rent per m² vs the local market, refinancing cost when a fixation ends at today's rate. ECB mortgage rates by country and fixation period; Eurostat house-price and rent trends |
+
+Data limits, stated rather than hidden: ECB mortgage rates cover the euro area
+and Eurostat the EU/EEA; city-level rent per m² comes from local rent indices
+and listing portals through search, recorded with its date and source. Sale
+results use today's exchange rate, so the broker's annual tax statement stays
+authoritative.
 
 ---
 

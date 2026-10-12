@@ -8,6 +8,7 @@ import { FINANCE_COMMANDS, importFromText, runFinanceCommand } from '../commands
 import { ensureIncomeRefreshJob } from '../income/refresh.js';
 import { ensureRebalanceCheckJob } from '../rebalance/check.js';
 import { ensureThesisCheckJob } from '../judge/jobs.js';
+import { ensurePortfolioWatchJob } from '../wealth/watch.js';
 import { loadGatewayConfig, type GatewayConfig } from './config.js';
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from '../model/llm.js';
 import { runAgentForMessage, isSessionRunning, enqueueForSession } from './agent-runner.js';
@@ -221,6 +222,7 @@ export async function startGateway(params: { configPath?: string } = {}): Promis
   ensureIncomeRefreshJob();
   ensureRebalanceCheckJob();
   ensureThesisCheckJob();
+  ensurePortfolioWatchJob();
   const cron = startCronRunner({ configPath: params.configPath });
 
   return {

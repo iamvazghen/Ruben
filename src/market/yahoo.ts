@@ -50,6 +50,17 @@ export interface MarketData {
   fundamentals(symbol: string): Promise<Record<string, number> | null>;
   /** Company sector and country of headquarters (companies only; funds have none). */
   profile?(symbol: string): Promise<{ sector?: string; country?: string } | null>;
+  /** Daily closes, oldest first. `range` as Yahoo takes it: 1y, 5y, 10y, max. */
+  history?(symbol: string, range: string): Promise<{ currency: string; closes: { date: string; close: number }[] } | null>;
+  /** Funds only: expense ratio, top holdings and sector weights, as fractions of 1. */
+  fund?(symbol: string): Promise<FundProfile | null>;
+}
+
+export interface FundProfile {
+  expenseRatio?: number;
+  family?: string;
+  holdings: { symbol: string; name: string; weight: number }[];
+  sectors: Record<string, number>;
 }
 
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)';
@@ -164,6 +175,30 @@ export const yahoo: MarketData = {
     const r = await quoteSummary(symbol, 'assetProfile');
     const p = r?.assetProfile;
     return p ? { sector: p.sector || undefined, country: p.country || undefined } : null;
+  },
+
+  async history(symbol, range) {
+    const json = await getJson(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=1d`);
+    const r = json?.chart?.result?.[0];
+    const ts: number[] = r?.timestamp ?? [];
+    const close: (number | null)[] = r?.indicators?.adjclose?.[0]?.adjclose ?? r?.indicators?.quote?.[0]?.close ?? [];
+    if (!ts.length) return null;
+    const closes = ts.flatMap((t, i) => (close[i] != null && close[i]! > 0 ? [{ date: day(t), close: close[i]! }] : []));
+    return { currency: String(r.meta?.currency ?? 'USD'), closes };
+  },
+
+  async fund(symbol) {
+    const r = await quoteSummary(symbol, 'topHoldings,fundProfile');
+    const top = r?.topHoldings;
+    if (!top) return null;
+    const sectors: Record<string, number> = {};
+    for (const w of top.sectorWeightings ?? []) for (const [k, v] of Object.entries(w)) sectors[k] = (v as { raw?: number }).raw ?? 0;
+    return {
+      expenseRatio: r.fundProfile?.feesExpensesInvestment?.annualReportExpenseRatio?.raw,
+      family: r.fundProfile?.family || undefined,
+      holdings: (top.holdings ?? []).map((h: any) => ({ symbol: String(h.symbol ?? ''), name: String(h.holdingName ?? ''), weight: h.holdingPercent?.raw ?? 0 })),
+      sectors,
+    };
   },
 
   async rate(from, to) {

@@ -47,6 +47,10 @@ import { portfolioView, portfolioAdd, portfolioRemove, portfolioJournal, portfol
 import { incomeCalendar, yieldPlanTool, taxProfileTool, incomeConfirm,
   reserveTool, rebalanceProposal, rebalanceTargets, portfolioImport } from './portfolio/finance-tools.js';
 import { dividendSafety, thesisCheck, newsMateriality } from '../judge/tools.js';
+import { propertyManage, propertyReview, mortgageRatesTool, housingMarketTool } from '../realestate/tools.js';
+import { commitmentsTool, incomeForecastTool, wealthOverviewTool } from '../wealth/tools.js';
+import { assetForecastTool, fundLookThroughTool, portfolioAlertsTool } from '../wealth/analysis-tools.js';
+import { taxYearSummaryTool } from '../tax/annual.js';
 import { jevAvailable } from '../judge/jev.js';
 import {
   gradeTickerTool,
@@ -440,6 +444,18 @@ export function getToolRegistry(model: string): RegisteredTool[] {
     { name: 'rebalance_proposal', tool: rebalanceProposal, description: 'Drift from target weights and tax-aware trades to fix it. Suggestions only.', compactDescription: 'Rebalancing drift and suggested trades.', concurrencySafe: true },
     { name: 'rebalance_targets', tool: rebalanceTargets, description: 'Show or set rebalancing target weights. Confirm before changing.', compactDescription: 'Show or set target weights.', concurrencySafe: false },
     { name: 'portfolio_import', tool: portfolioImport, description: 'Preview a broker CSV import, or apply it after the owner confirmed.', compactDescription: 'Import holdings from a broker CSV.', concurrencySafe: false },
+    // Whole-wealth view, monitoring, tax filing and real estate.
+    { name: 'wealth_overview', tool: wealthOverviewTool, description: 'Net worth across securities, cash reserve and real estate equity; allocation by asset class; 12-month income and commitments; flags. Use before allocation advice.', compactDescription: 'Net worth, allocation, income vs commitments.', concurrencySafe: true },
+    { name: 'income_forecast', tool: incomeForecastTool, description: 'Dividends/coupons over 12 months net of tax, by month and holding, yield-plan split, and where reinvested income should go.', compactDescription: '12-month dividend forecast and deployment.', concurrencySafe: true },
+    { name: 'commitments', tool: commitmentsTool, description: 'Savings plans, loans, capital calls, insurance: 12-month totals; add/remove after the owner confirms.', compactDescription: 'Recurring financial commitments.', concurrencySafe: false },
+    { name: 'portfolio_alerts', tool: portfolioAlertsTool, description: 'Holdings with sharp falls, drawdowns, losses vs cost, stop/target hits or dividend cuts. Follow up with news.', compactDescription: 'Price and dividend warnings per holding.', concurrencySafe: true },
+    { name: 'fund_look_through', tool: fundLookThroughTool, description: 'Underlying exposure, overlap, sectors and annual cost of the ETFs/funds held.', compactDescription: 'ETF look-through, overlap and fees.', concurrencySafe: true },
+    { name: 'asset_forecast', tool: assetForecastTool, description: 'Statistical 1/3/5-year price range (P10/P50/P90) for any asset from its history; a range, not a prediction.', compactDescription: 'Statistical price range for an asset.', concurrencySafe: true },
+    { name: 'tax_year_summary', tool: taxYearSummaryTool, description: 'Tax-return figures for a year (income, sales, rentals) with form mapping for DE, plus year-end planning. Prepares, does not file.', compactDescription: 'Tax-year figures and planning.', concurrencySafe: true },
+    { name: 'property_manage', tool: propertyManage, description: 'Add, update or remove an owned property and its mortgages after the owner confirms.', compactDescription: 'Record a property and its mortgages.', concurrencySafe: false },
+    { name: 'property_review', tool: propertyReview, description: 'Equity, LTV, yields, cash flow, rent/m2 vs market, refinancing risk per property.', compactDescription: 'Review owned real estate.', concurrencySafe: true },
+    { name: 'mortgage_rates', tool: mortgageRatesTool, description: 'Euro-area mortgage rates by country and fixation period (ECB), with a year-ago comparison.', compactDescription: 'Mortgage rates by country.', concurrencySafe: true },
+    { name: 'housing_market', tool: housingMarketTool, description: 'House-price and rent trends for an EU/EEA country (Eurostat).', compactDescription: 'National house price and rent trends.', concurrencySafe: true },
   );
 
   // Jev judgements: only with a TypeSafe key.
