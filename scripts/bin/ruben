@@ -88,13 +88,17 @@ case "${1:-}" in
     shift
     exec node --import tsx src/ask.ts "$@"
     ;;
+  transcript|sessions)
+    # A Mushegh-started session: read it back, or send it to the owner's Telegram (D-97).
+    exec node --import tsx src/ask.ts "$@"
+    ;;
   *)
     # The interactive TUI needs a real terminal. Refuse clearly rather than
     # hanging forever on a pipe, which is what happens otherwise.
     if [ ! -t 0 ] || [ ! -t 1 ]; then
       echo "[ruben] The interactive UI needs a terminal (stdin/stdout are not a TTY here)." >&2
       echo "[ruben] Run it from Windows Terminal, PowerShell or a real shell." >&2
-      echo "[ruben] Non-interactive subcommands that do work: ask, health, test, pull, push, vps, logs" >&2
+      echo "[ruben] Non-interactive subcommands that do work: ask, transcript, sessions, health, test, pull, push, vps, logs" >&2
       exit 1
     fi
     # Node, not Bun: Bun on Windows never reports terminal resizes.

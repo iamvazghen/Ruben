@@ -5,7 +5,7 @@ import { rubenPath } from './paths.js';
 import { timeZone } from './locale.js';
 
 /** Where a session was started. Part of the id, so it is visible wherever the id is. */
-export type SessionOrigin = 'cli' | 'telegram';
+export type SessionOrigin = 'cli' | 'telegram' | 'mushegh';
 
 /**
  * A single completed exchange within a session.
@@ -80,7 +80,7 @@ export function makeSessionId(origin: SessionOrigin, date = new Date()): string 
 
 /** Accepts `cli:…`, `telegram:…`, or the on-disk form `cli_…`. */
 export function normalizeSessionId(id: string): string {
-  return id.trim().replace(/^(cli|telegram)_/, '$1:');
+  return id.trim().replace(/^(cli|telegram|mushegh)_/, '$1:');
 }
 
 function deriveTitle(query: string): string {
@@ -178,7 +178,7 @@ async function migrateLegacySessions(): Promise<void> {
   const dir = sessionsDir();
   if (!existsSync(dir)) return;
   for (const file of await readdir(dir)) {
-    if (!file.endsWith('.json') || /^(cli|telegram)_/.test(file)) continue;
+    if (!file.endsWith('.json') || /^(cli|telegram|mushegh)_/.test(file)) continue;
     const path = join(dir, file);
     try {
       const parsed = JSON.parse(await readFile(path, 'utf-8')) as Partial<SessionFile>;

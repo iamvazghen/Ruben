@@ -39,6 +39,14 @@ if /i "%~1"=="ask" (
   call node --import tsx src/ask.ts %2 %3 %4 %5 %6 %7 %8 %9
   goto :done
 )
+if /i "%~1"=="transcript" (
+  call node --import tsx src/ask.ts %1 %2 %3 %4 %5 %6 %7 %8 %9
+  goto :done
+)
+if /i "%~1"=="sessions" (
+  call node --import tsx src/ask.ts %1 %2 %3
+  goto :done
+)
 if /i "%~1"=="health" (
   call bun run health
   goto :done
