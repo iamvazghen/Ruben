@@ -10,6 +10,7 @@
 // Mushegh can follow up on it. --json (implied by a .json request) answers with
 // {session, answer, failed, tools:[{tool, ok, ms?, error?}]} so the caller can review the run.
 // Tools that need approval are denied: there is nobody here to approve them.
+import { renderReport, report, store } from './onchain/ledger.js';
 import { readFileSync, statSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -134,6 +135,32 @@ async function sessions(args: string[]): Promise<void> {
   process.exit(0);
 }
 
+/**
+ * `ruben onchain record --file <jsonl|json>` stores what Mushegh's Hugh reports (D-130 on that side).
+ * Exit 0 only when every record was stored or was already there, so the sender keeps anything that
+ * failed in its outbox. `ruben onchain report --period month|quarter|year [--at X] [--json]`.
+ */
+async function onchain(args: string[]): Promise<void> {
+
+  const opt = (k: string) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : undefined; };
+  if (args[0] === 'record') {
+    const file = opt('--file');
+    const text = file ? readFileSync(file, 'utf8') : readFileSync(0, 'utf8');
+    const trimmed = text.trim();
+    const records = trimmed.startsWith('[') ? JSON.parse(trimmed) : trimmed.split('\n').filter((l) => l.trim()).map((l) => JSON.parse(l));
+    const res = store(records);
+    process.stdout.write(`${JSON.stringify(res)}\n`);
+    process.exit(res.errors.length ? 1 : 0);
+  }
+  if (args[0] === 'report') {
+    const period = (opt('--period') ?? 'month') as 'month' | 'quarter' | 'year';
+    const r = report(period, opt('--at'));
+    process.stdout.write(args.includes('--json') ? `${JSON.stringify(r)}\n` : `${renderReport(r)}\n`);
+    process.exit(0);
+  }
+  fail('usage: ruben onchain record --file <path> | ruben onchain report --period month|quarter|year [--at X] [--json]', 2);
+}
+
 const [first, ...rest] = process.argv.slice(2);
-const run = first === 'transcript' ? transcript(rest) : first === 'sessions' ? sessions(rest) : ask(process.argv.slice(2));
+const run = first === 'transcript' ? transcript(rest) : first === 'sessions' ? sessions(rest) : first === 'onchain' ? onchain(rest) : ask(process.argv.slice(2));
 run.catch((err) => fail(err instanceof Error ? err.message : String(err)));

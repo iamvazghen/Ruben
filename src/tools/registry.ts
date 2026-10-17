@@ -49,6 +49,7 @@ import { incomeCalendar, yieldPlanTool, taxProfileTool, incomeConfirm,
 import { dividendSafety, thesisCheck, newsMateriality } from '../judge/tools.js';
 import { propertyManage, propertyReview, mortgageRatesTool, housingMarketTool } from '../realestate/tools.js';
 import { commitmentsTool, incomeForecastTool, wealthOverviewTool } from '../wealth/tools.js';
+import { onchainReportTool } from '../onchain/tools.js';
 import { assetForecastTool, fundLookThroughTool, portfolioAlertsTool } from '../wealth/analysis-tools.js';
 import { taxYearSummaryTool } from '../tax/annual.js';
 import { taxJurisdictionTool, taxKnowledgeTool } from '../tax/knowledge.js';
@@ -455,6 +456,7 @@ export function getToolRegistry(model: string): RegisteredTool[] {
     { name: 'rebalance_targets', tool: rebalanceTargets, description: 'Show or set rebalancing target weights. Confirm before changing.', compactDescription: 'Show or set target weights.', concurrencySafe: false },
     { name: 'portfolio_import', tool: portfolioImport, description: 'Preview a broker CSV import, or apply it after the owner confirmed.', compactDescription: 'Import holdings from a broker CSV.', concurrencySafe: false },
     // Whole-wealth view, monitoring, tax filing and real estate.
+    { name: 'onchain_report', tool: onchainReportTool, description: 'On-chain activity for a month, quarter or year as reported by Mushegh\'s agent Hugh: purposes, counterparties, EUR value, fees, approvers, explorer links, totals by purpose and chain.', compactDescription: 'On-chain activity report (month/quarter/year).', concurrencySafe: true },
     { name: 'wealth_overview', tool: wealthOverviewTool, description: 'Net worth across securities, cash reserve and real estate equity; allocation by asset class; 12-month income and commitments; flags. Use before allocation advice.', compactDescription: 'Net worth, allocation, income vs commitments.', concurrencySafe: true },
     { name: 'income_forecast', tool: incomeForecastTool, description: 'Dividends/coupons over 12 months net of tax, by month and holding, yield-plan split, and where reinvested income should go.', compactDescription: '12-month dividend forecast and deployment.', concurrencySafe: true },
     { name: 'commitments', tool: commitmentsTool, description: 'Savings plans, loans, capital calls, insurance: 12-month totals; add/remove after the owner confirms.', compactDescription: 'Recurring financial commitments.', concurrencySafe: false },
