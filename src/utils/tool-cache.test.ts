@@ -30,6 +30,18 @@ describe('tool-cache', () => {
     expect(getToolCacheEntry('portfolio_add', { ticker: 'AAPL' })).toBeNull();
   });
 
+  test('nested args are part of the key (2026-11-07: every spending add shared one key)', () => {
+    setToolCacheEntry('web_search', { query: 'x', opts: { lang: 'de' } }, 'de');
+    expect(getToolCacheEntry('web_search', { query: 'x', opts: { lang: 'en' } })).toBeNull();
+    expect(getToolCacheEntry('web_search', { opts: { lang: 'de' }, query: 'x' })?.result).toBe('de');
+  });
+
+  test('a tool not listed as a read is never cached', () => {
+    const add = { action: 'add', purchase: { merchant: 'REWE', amount: 84.2 } };
+    setToolCacheEntry('spending', add, 'added REWE');
+    expect(getToolCacheEntry('spending', add)).toBeNull();
+  });
+
   test('different args miss the cache', () => {
     setToolCacheEntry('fmp_ratios', { ticker: 'AAPL' }, 'AAPL-data');
     expect(getToolCacheEntry('fmp_ratios', { ticker: 'MSFT' })).toBeNull();

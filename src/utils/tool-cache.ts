@@ -12,8 +12,9 @@
  *   - Per-tool TTL: news/freshness-sensitive tools get short TTL; statements
  *     and fundamentals get longer.
  *   - LRU eviction at 200 entries. Bounded memory.
- *   - Bypassed for mutating tools (write_file, edit_file, cron, heartbeat,
- *     memory_update, portfolio_*, run_debate, ask_user_question).
+ *   - ONLY tools listed in TOOL_TTL_MS are cached (an allowlist of reads). It was a denylist of
+ *     mutating tools until 2026-11-07, when the personal-finance tools added since (spending,
+ *     salary, accounts, ...) were being served cached "added" results and nothing was saved.
  */
 
 import { createHash } from 'crypto';
@@ -80,22 +81,48 @@ const TOOL_TTL_MS: Record<string, number> = {
   ecb_policy_rate: 60 * 60 * 1000,
   ecb_hicp: 60 * 60 * 1000,
   boe_bank_rate: 60 * 60 * 1000,
+  // Reads seen in a typical answer (2026-11-07 review)
+  yahoo_quote: 30_000,
+  yahoo_history: 60 * 60 * 1000,
+  coingecko_markets: 30_000,
+  get_market_data: 30_000,
+  get_fx_rates: 60 * 60 * 1000,
+  get_financials: 24 * 60 * 60 * 1000,
+  grade_ticker: 60 * 60 * 1000,
+  web_search: 10 * 60 * 1000,
+  web_fetch: 10 * 60 * 1000,
 };
 
 const DEFAULT_TTL_MS = 60_000;
 
+/** A read with a known TTL, and never a mutating tool. */
+function cacheable(toolName: string): boolean {
+  return toolName in TOOL_TTL_MS && !MUTATING_TOOLS.has(toolName);
+}
+
 const cache = new Map<string, CacheEntry>();
 
+/** Canonical JSON: keys sorted at EVERY level. (A replacer array is an allowlist applied to nested
+ *  objects too, so the old `JSON.stringify(args, sortedTopKeys)` dropped every nested field and
+ *  gave e.g. every `{action:'add', purchase:{...}}` the same key.) */
+function canonical(v: unknown): string {
+  if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;
+  if (v && typeof v === 'object') {
+    const o = v as Record<string, unknown>;
+    return `{${Object.keys(o).sort().map((k) => `${JSON.stringify(k)}:${canonical(o[k])}`).join(',')}}`;
+  }
+  return JSON.stringify(v) ?? 'null';
+}
+
 function hashKey(toolName: string, args: Record<string, unknown>): string {
-  // Canonical JSON serialization: stable key order, no extra whitespace.
-  const payload = JSON.stringify(args, Object.keys(args).sort());
+  const payload = canonical(args);
   const h = createHash('sha1').update(`${toolName}|${payload}`).digest('hex').slice(0, 16);
   return `${toolName}:${h}`;
 }
 
 /** Look up a cached tool result. Returns null on miss, on TTL expiry, or for mutating tools. */
 export function getToolCacheEntry(toolName: string, args: Record<string, unknown>): { result: string; cached: true; ageMs: number } | null {
-  if (MUTATING_TOOLS.has(toolName)) return null;
+  if (!cacheable(toolName)) return null;
   const key = hashKey(toolName, args);
   const entry = cache.get(key);
   if (!entry) return null;
@@ -110,7 +137,7 @@ export function getToolCacheEntry(toolName: string, args: Record<string, unknown
 
 /** Store a tool result in the cache. Silently no-ops for mutating tools. */
 export function setToolCacheEntry(toolName: string, args: Record<string, unknown>, result: string): void {
-  if (MUTATING_TOOLS.has(toolName)) return;
+  if (!cacheable(toolName)) return;
   const key = hashKey(toolName, args);
   // LRU eviction: if at capacity, drop the oldest entry.
   if (cache.size >= MAX_ENTRIES && !cache.has(key)) {
