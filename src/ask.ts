@@ -5,7 +5,7 @@
 //                                       and data intake without a single risky argv character
 //   ruben ask [--json] "<question>"
 //   ruben transcript <session> [--telegram]   the whole session; --telegram sends it to the owner
-//   ruben sessions [--json]                   the newest sessions Mushegh started
+//   ruben sessions [--json] [--all]             the newest sessions Mushegh started (--all: every origin)
 // Every ask is a saved session (origin `mushegh`), so the owner can /resume it on Telegram and
 // Mushegh can follow up on it. --json (implied by a .json request) answers with
 // {session, answer, failed, tools:[{tool, ok, ms?, error?}]} so the caller can review the run.
@@ -126,9 +126,11 @@ async function transcript(args: string[]): Promise<void> {
 }
 
 async function sessions(args: string[]): Promise<void> {
-  const list = (await listSessions('mushegh')).slice(0, 10);
+  // --all: the owner's own Telegram and CLI sessions too, so Mushegh can review all the finance work.
+  const all = args.includes('--all');
+  const list = (await listSessions(all ? undefined : 'mushegh')).slice(0, all ? 25 : 10);
   if (args.includes('--json')) {
-    process.stdout.write(`${JSON.stringify(list.map((s) => ({ id: s.id, title: s.title, turns: s.turnCount })))}\n`);
+    process.stdout.write(`${JSON.stringify(list.map((s) => ({ id: s.id, title: s.title, turns: s.turnCount, updated: s.updatedAt })))}\n`);
   } else {
     process.stdout.write(list.map((s) => `${s.id}  ${s.title} (${s.turnCount})`).join('\n') + '\n');
   }
