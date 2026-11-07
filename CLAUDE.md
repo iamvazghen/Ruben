@@ -15,6 +15,5 @@ Durable project memory: `C:\Users\iamva\Documents\Obsidian Vault\30-Projects\Act
 Context order: graphify query → vault note → raw source. Never grep to orient.
 `/resume` to load state, `/save` to write it back.
 
-The local vault is a read-only replica. Vault edits must be pushed to the VPS
-(`openclaw@100.107.141.83:/home/openclaw/vault`) or the next sync
-deletes them.
+The local vault is the only, canonical copy (the VPS vault was destroyed 2026-11-07);
+write it directly.
