@@ -1,4 +1,3 @@
-import { buildCompactToolDescriptions } from '../tools/registry.js';
 import { buildSkillMetadataSection, discoverSkills } from '../skills/index.js';
 import { PortfolioStore } from '../tools/portfolio/index.js';
 import { readFile } from 'node:fs/promises';
@@ -215,7 +214,6 @@ export function buildSystemPrompt(
   memoryContext?: string | null,
   rulesContent?: string | null,
 ): string {
-  const toolDescriptions = buildCompactToolDescriptions(model);
   const profile = getChannelProfile(channel);
 
   const behaviorBullets = profile.behavior.map(b => `- ${b}`).join('\n');
@@ -236,11 +234,9 @@ export function buildSystemPrompt(
 
 ${profile.preamble}
 
-## Available Tools
-
-${toolDescriptions}
-
 ## Tool Usage Policy
+
+- The tools, with their full descriptions and parameters, are bound to this request; they are not repeated here (2026-11-07: that list cost ~1.6k tokens on every call).
 
 - Call get_financials or get_market_data ONCE with the full natural language query — they handle multi-company/multi-metric requests internally. Do NOT break up queries into multiple calls.
 - Only use web_fetch when headlines are insufficient (need quotes, deal specifics, earnings details).

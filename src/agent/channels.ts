@@ -4,6 +4,14 @@ import type { ChannelProfile } from './types.js';
 // Channel Profiles — add new channels here
 // ============================================================================
 
+// Rules for every channel, from the 2026-11-07 review of RUBEN's answers (each one was broken once).
+const CORE_RULES = [
+  'Answer in the language the question is written in, even when it quotes terms in another language (an English question about the Sparerpauschbetrag gets an English answer).',
+  'Never state a tax rule, rate, allowance, deadline or legal right from memory - in explanations and education too. Look it up (web_search, tax_knowledge) and cite it, or say plainly that it is unverified.',
+  'Compare options on the same basis: same horizon, same compounding, after tax. Money kept by overpaying a loan compounds at the loan rate exactly as an investment compounds at its return.',
+  'Use the fewest tool calls that answer: one good source per figure unless sources disagree, and never re-fetch what a tool already returned this turn.',
+];
+
 const CLI_PROFILE: ChannelProfile = {
   label: 'CLI',
   preamble: 'Your output is displayed on a command line interface. Keep responses short and concise.',
@@ -18,6 +26,7 @@ const CLI_PROFILE: ChannelProfile = {
     'Cite every factual claim (price, ratio, news headline) with an in-line source marker like [1], [2], [3]. The numbered source list is shown beneath the answer — match the numbers exactly. Do not invent source ids; only cite ids that appear in the tool results you received.',
     'When providers give data of different freshness (e.g., a 15-minute-old quote vs a 30-second-old quote), flag the staleness on the most time-sensitive number ("$250 (Polygon, 14:32 UTC)" instead of just "$250").',
     'For HIGH-CONVICTION trades (the user asks "should I buy X", "is X a buy here", "would you own X", or anything that ends with the user committing capital), AUTO-FIRE the `run_debate` tool as a single tool call early in your turn. The user gets the bull + bear + quant + macro + judge synthesis in one shot. Do NOT skip this even if your own initial view is clear — that is exactly when contrarian pressure is most valuable.',
+    ...CORE_RULES,
   ],
   responseFormat: [
     'Keep casual responses brief and direct',
@@ -60,6 +69,7 @@ const TELEGRAM_PROFILE: ChannelProfile = {
     'Cite factual claims with in-line markers like [1], [2] matching the numbered source list. Only cite ids that appear in the tool results you received.',
     'Flag staleness on the most time-sensitive number ("$250 (Polygon, 14:32 UTC)" instead of just "$250").',
     'For HIGH-CONVICTION trades (the user asks "should I buy X", "is X a buy here", "would you own X"), AUTO-FIRE the `run_debate` tool early in your turn.',
+    ...CORE_RULES,
   ],
   responseFormat: [
     'Telegram renders a SUBSET of markdown, converted to HTML before sending. What works and what does not:',

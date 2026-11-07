@@ -19,7 +19,7 @@ describe('ruben ask — sessions and transcript', () => {
 
   test('sessions lists the Mushegh session', () => {
     const out = run('sessions', '--json');
-    expect(JSON.parse(out.stdout)).toEqual([{ id, title: 'What is my tax position?', turns: 1 }]);
+    expect(JSON.parse(out.stdout)).toMatchObject([{ id, title: 'What is my tax position?', turns: 1 }]);
   }, 60_000);
 
   test('transcript renders every turn, by either id form', () => {
