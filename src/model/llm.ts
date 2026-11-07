@@ -19,8 +19,33 @@ import { resolveProvider, getProviderById } from '@/providers';
 // proxy that fronts minimax (M3.1 Flash Preview since 2026-10-12). Set MINIMAX_BASE_URL in .env to point at the
 // proxy; if unset, the placeholder baseUrlDefault is used (which will fail until
 // configured — model-selection.ts guides the user to set it).
-export const DEFAULT_PROVIDER = 'minimax';
-export const DEFAULT_MODEL = 'minimax:MiniMax-M3.1-Flash-Preview';
+// 2026-11-07: the MiniMax plan ran out of credits and RUBEN answered nothing. The default is now a
+// free NVIDIA NIM model (Mushegh D-149), and RUBEN_MODEL_CHAIN lists the models tried in turn when
+// one fails, so one exhausted key no longer silences him.
+export const DEFAULT_PROVIDER = 'nvidia';
+export const DEFAULT_MODEL = 'nvidia:nvidia/nemotron-3.5-super-vl-120b-a12b';
+
+/** The requested model first, then RUBEN_MODEL_CHAIN (comma-separated) in order. Read per call. */
+export function modelChain(first: string): string[] {
+  const chain = (process.env.RUBEN_MODEL_CHAIN ?? '').split(',').map((m) => m.trim()).filter(Boolean);
+  return [first, ...chain.filter((m) => m !== first)];
+}
+
+/** Run `call` on each model of the chain until one succeeds. An abort is never retried. */
+async function overChain<T>(model: string, signal: AbortSignal | undefined,
+                            call: (m: string) => Promise<T>): Promise<T> {
+  let last: unknown;
+  for (const m of modelChain(model)) {
+    try {
+      return await call(m);
+    } catch (e) {
+      if (signal?.aborted) throw e;
+      last = e;
+      logger.warn(`[LLM] ${m} failed, trying the next model in RUBEN_MODEL_CHAIN: ${e instanceof Error ? e.message.slice(0, 200) : String(e)}`);
+    }
+  }
+  throw last;
+}
 
 /**
  * Gets the fast model variant for the given provider.
@@ -156,6 +181,18 @@ const MODEL_FACTORIES: Record<string, ModelFactory> = {
   },
 };
 
+// The free OpenAI-compatible endpoints: base URL and key come from the provider row.
+for (const id of ['nvidia', 'experiential', 'groq']) {
+  const def = getProviderById(id)!;
+  MODEL_FACTORIES[id] = (name, opts) =>
+    new ChatOpenAI({
+      model: name.slice(def.modelPrefix.length),
+      ...opts,
+      apiKey: getApiKey(def.apiKeyEnvVar!),
+      configuration: { baseURL: def.baseUrlDefault },
+    });
+}
+
 const DEFAULT_FACTORY: ModelFactory = (name, opts) =>
   new ChatOpenAI({
     model: name,
@@ -278,6 +315,11 @@ function buildAnthropicMessages(systemPrompt: string, userPrompt: string) {
 }
 
 export async function callLlm(prompt: string, options: CallLlmOptions = {}): Promise<LlmResult> {
+  return overChain(options.model ?? DEFAULT_MODEL, options.signal,
+                   (m) => callLlmOnce(prompt, { ...options, model: m }));
+}
+
+async function callLlmOnce(prompt: string, options: CallLlmOptions = {}): Promise<LlmResult> {
   const {
     model = DEFAULT_MODEL,
     systemPrompt,
@@ -384,6 +426,14 @@ export async function callLlmWithMessages(
   messages: BaseMessage[],
   options: CallLlmWithMessagesOptions = {},
 ): Promise<LlmResult> {
+  return overChain(options.model ?? DEFAULT_MODEL, options.signal,
+                   (m) => callLlmWithMessagesOnce(messages, { ...options, model: m }));
+}
+
+async function callLlmWithMessagesOnce(
+  messages: BaseMessage[],
+  options: CallLlmWithMessagesOptions = {},
+): Promise<LlmResult> {
   const { model = DEFAULT_MODEL, tools, signal } = options;
 
   const llm = getChatModel(model, false);
@@ -424,6 +474,28 @@ export async function callLlmWithMessages(
  * if streaming is not supported by the provider.
  */
 export async function* streamLlmWithMessages(
+  messages: BaseMessage[],
+  options: CallLlmWithMessagesOptions = {},
+): AsyncGenerator<AIMessageChunk, void> {
+  // A model that fails before its first chunk hands over to the next; one that fails mid-stream
+  // cannot, because part of its answer has already gone out.
+  const models = modelChain(options.model ?? DEFAULT_MODEL);
+  for (let i = 0; i < models.length; i++) {
+    let yielded = false;
+    try {
+      for await (const chunk of streamOnce(messages, { ...options, model: models[i] })) {
+        yielded = true;
+        yield chunk;
+      }
+      return;
+    } catch (e) {
+      if (yielded || options.signal?.aborted || i === models.length - 1) throw e;
+      logger.warn(`[LLM] ${models[i]} failed, trying the next model in RUBEN_MODEL_CHAIN: ${e instanceof Error ? e.message.slice(0, 200) : String(e)}`);
+    }
+  }
+}
+
+async function* streamOnce(
   messages: BaseMessage[],
   options: CallLlmWithMessagesOptions = {},
 ): AsyncGenerator<AIMessageChunk, void> {
