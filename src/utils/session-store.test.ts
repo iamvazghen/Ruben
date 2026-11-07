@@ -24,3 +24,15 @@ test('a session continued on both surfaces keeps every turn, in order', async ()
   expect(saved.turns.map((t) => t.query)).toEqual(['how is KO?', 'and PEP?', 'thanks']);
   expect(saved.title).toBe('how is KO?');
 });
+
+test('two sessions started in the same second never share an id (2026-11-07)', async () => {
+  const { SessionStore, loadSession, listSessions } = await import('./session-store.js');
+  const at = new Date('2026-11-07T10:40:41Z');
+  const { makeSessionId } = await import('./session-store.js');
+  const a = makeSessionId('mushegh', at), b = makeSessionId('mushegh', at);
+  expect(a).not.toBe(b);
+  expect(await loadSession(a)).toBeNull();          // reserved, no turn yet
+  const s = SessionStore.create('m', 'mushegh');
+  await s.appendTurn('q', 'a');
+  expect((await listSessions('mushegh')).map((x) => x.id)).toEqual([s.id]);
+});

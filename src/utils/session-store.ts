@@ -1,5 +1,5 @@
 import { readFile, writeFile, mkdir, readdir, rm } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { rubenPath } from './paths.js';
 import { timeZone } from './locale.js';
@@ -70,12 +70,24 @@ export function formatSessionStamp(date: Date, tz = timeZone()): string {
   return `${parts.year}-${parts.month}-${parts.day}_${parts.hour}-${parts.minute}-${parts.second}`;
 }
 
-/** A fresh, unused id. Two sessions started in the same second get a -2, -3 suffix. */
+/**
+ * A fresh, unused id. Two sessions started in the same second get a -2, -3 suffix.
+ * The id is RESERVED on disk (exclusive create) when it is issued: the session file is otherwise
+ * written only after the first answer, so two asks in the same second used to share one id and
+ * the second merged into the first (seen 2026-11-07 with three parallel asks).
+ */
 export function makeSessionId(origin: SessionOrigin, date = new Date()): string {
   const base = `${origin}:${formatSessionStamp(date)}`;
-  let id = base;
-  for (let n = 2; existsSync(sessionPath(id)); n++) id = `${base}-${n}`;
-  return id;
+  mkdirSync(sessionsDir(), { recursive: true });
+  for (let n = 1; ; n++) {
+    const id = n === 1 ? base : `${base}-${n}`;
+    try {
+      writeFileSync(sessionPath(id), '{}', { flag: 'wx' });
+      return id;
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== 'EEXIST') throw e;
+    }
+  }
 }
 
 /** Accepts `cli:…`, `telegram:…`, or the on-disk form `cli_…`. */
@@ -197,7 +209,8 @@ export async function loadSession(id: string): Promise<SessionFile | null> {
   await migrateLegacySessions();
   try {
     const content = await readFile(sessionPath(normalizeSessionId(id)), 'utf-8');
-    return JSON.parse(content) as SessionFile;
+    const parsed = JSON.parse(content) as SessionFile;
+    return parsed?.id ? parsed : null;   // '{}' is a reserved id with no turn yet
   } catch {
     return null;
   }
