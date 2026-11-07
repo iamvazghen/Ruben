@@ -2,6 +2,7 @@ import { AIMessage, AIMessageChunk, SystemMessage, HumanMessage, ToolMessage, ty
 import { StructuredToolInterface } from '@langchain/core/tools';
 import { callLlmWithMessages, streamLlmWithMessages, DEFAULT_MODEL as LLM_DEFAULT_MODEL } from '../model/llm.js';
 import { getTools, getToolConcurrencyMap } from '../tools/registry.js';
+import { selectTools, loadToolsTool, GROUPS } from '../tools/select.js';
 import { buildSystemPrompt, loadSoulDocument, loadRulesDocument } from './prompts.js';
 import { extractTextContent, hasToolCalls } from '../utils/ai-message.js';
 import { extractReasoning } from '../utils/strip-reasoning.js';
@@ -53,6 +54,8 @@ export class Agent {
   private readonly model: string;
   private readonly maxIterations: number;
   private readonly tools: StructuredToolInterface[];
+  /** The schemas bound for THIS question (tools/select.ts); every tool stays runnable. */
+  private bound: StructuredToolInterface[] = [];
   private readonly toolMap: Map<string, StructuredToolInterface>;
   private readonly toolExecutor: AgentToolExecutor;
   private readonly systemPrompt: string;
@@ -150,6 +153,19 @@ export class Agent {
 
     // Build initial message array
     const historyMessages = inMemoryHistory?.getRecentTurnsAsMessages() ?? [];
+    // Bind only the tool groups this question (and the session's earlier ones) touches.
+    const earlier = historyMessages.filter(m => m instanceof HumanMessage)
+      .map(m => (typeof m.content === 'string' ? m.content : JSON.stringify(m.content)));
+    const hatch = loadToolsTool((groups) => {
+      const want = groups.includes('all') ? this.tools
+        : this.tools.filter(t => groups.some(g => GROUPS[g]?.tools.test(t.name)));
+      const have = new Set(this.bound.map(t => t.name));
+      this.bound = [...this.bound, ...want.filter(t => !have.has(t.name))];
+      return `Bound: ${want.map(t => t.name).join(', ') || 'nothing (unknown group)'}.`;
+    });
+    this.toolMap.set(hatch.name, hatch);
+    const picked = selectTools(this.tools, [...earlier, query]);
+    this.bound = picked.length === this.tools.length ? picked : [...picked, hatch];
     let messages: BaseMessage[] = [
       new SystemMessage(this.systemPrompt),
       ...historyMessages,
@@ -379,7 +395,7 @@ export class Agent {
 
     for await (const chunk of streamLlmWithMessages(messages, {
       model: this.model,
-      tools: this.tools,
+      tools: this.bound,
       signal: this.signal,
     })) {
       accumulated = accumulated ? accumulated.concat(chunk) : chunk;
@@ -439,7 +455,7 @@ export class Agent {
   ): Promise<{ response: AIMessage; usage?: TokenUsage }> {
     const result = await callLlmWithMessages(messages, {
       model: this.model,
-      tools: this.tools,
+      tools: this.bound,
       signal: this.signal,
     });
     return { response: result.response as AIMessage, usage: result.usage };
