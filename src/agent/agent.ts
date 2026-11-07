@@ -40,6 +40,15 @@ const CLI_ONLY_TOOLS = new Set<string>(['ask_user_question']);
  * - Streaming LLM responses with fallback to blocking
  * - Per-turn microcompact + threshold-based full compaction
  */
+/**
+ * The owner's question as the model sees it. The system prompt already says "answer in the
+ * question's language", but after a few German tool results the free models answered English
+ * questions in German (2026-11-07), so the reminder rides on the message itself.
+ */
+function asked(query: string): string {
+  return `${query}\n\n(Reply in the language this message is written in.)`;
+}
+
 export class Agent {
   private readonly model: string;
   private readonly maxIterations: number;
@@ -144,7 +153,7 @@ export class Agent {
     let messages: BaseMessage[] = [
       new SystemMessage(this.systemPrompt),
       ...historyMessages,
-      new HumanMessage(query),
+      new HumanMessage(asked(query)),
     ];
 
     // Main agent loop
@@ -608,7 +617,7 @@ export class Agent {
   private compactMessages(messages: BaseMessage[], summary: string, query: string): BaseMessage[] {
     return [
       messages[0], // SystemMessage
-      new HumanMessage(`${query}\n\n${summary}`),
+      new HumanMessage(`${asked(query)}\n\n${summary}`),
     ];
   }
 
